@@ -1,5 +1,6 @@
 package com.banking.restapiebankify.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class Role {
     @Column(unique = true, nullable = false)
     private String name;  // ADMIN, USER, EMPLOYEE
 
+    @JsonIgnore
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
     private Set<User> users;
 }

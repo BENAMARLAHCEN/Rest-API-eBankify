@@ -41,7 +41,7 @@ public class User {
     @Column(nullable = false)
     private LocalDate customerSince; // Date when user became a customer
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
