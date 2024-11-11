@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User registerUser(UserDTO userDTO) {
         // Convert UserDTO to User Entity
-        User user = UserMapper.INSTANCE.toUser(userDTO);
+        User user = UserMapper.toUser(userDTO);
 
         // Encode password
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
