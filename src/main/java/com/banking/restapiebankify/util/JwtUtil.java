@@ -12,7 +12,6 @@ public class JwtUtil {
 
     private final String SECRET_KEY = "mySecretKey";
 
-    // Generate a JWT Token
     public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
@@ -22,22 +21,18 @@ public class JwtUtil {
                 .compact();
     }
 
-    // Extract Username from JWT Token
     public String extractUsername(String token) {
         return extractClaims(token).getSubject();
     }
 
-    // Check if Token has expired
     public boolean isTokenExpired(String token) {
         return extractClaims(token).getExpiration().before(new Date());
     }
 
-    // Validate Token
     public boolean validateToken(String token, String username) {
         return (username.equals(extractUsername(token)) && !isTokenExpired(token));
     }
 
-    // Extract All Claims from Token
     private Claims extractClaims(String token) {
         return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
     }
