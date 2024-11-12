@@ -12,7 +12,11 @@ public interface BankAccountMapper {
     BankAccountMapper INSTANCE = Mappers.getMapper(BankAccountMapper.class);
 
     @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "status", target = "status")
     BankAccountDTO toBankAccountDTO(BankAccount bankAccount);
 
+    @Mapping(source = "userId", target = "user.id")
+    @Mapping(source = "status", target = "status")
     BankAccount toBankAccount(BankAccountDTO bankAccountDTO);
 }
+

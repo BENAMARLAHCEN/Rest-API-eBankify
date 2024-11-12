@@ -1,5 +1,7 @@
 package com.banking.restapiebankify.controller;
 
+import com.banking.restapiebankify.dto.BankAccountDTO;
+import com.banking.restapiebankify.mapper.BankAccountMapper;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.BankAccountService;
@@ -10,7 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bankaccounts")
@@ -36,80 +40,99 @@ public class BankAccountController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<BankAccount> createBankAccount(@RequestHeader("Authorization") String token, @RequestBody BankAccount bankAccount) {
+    public ResponseEntity<BankAccountDTO> createBankAccount(@RequestHeader("Authorization") String token,
+                                                            @RequestBody BankAccountDTO bankAccountDTO) {
         User user = getUserFromToken(token);
         if (user.getRole().getName().equals("USER")) {
+            BankAccount bankAccount = BankAccountMapper.INSTANCE.toBankAccount(bankAccountDTO);
             BankAccount createdAccount = bankAccountService.createBankAccount(bankAccount, user.getId());
-            return new ResponseEntity<>(createdAccount, HttpStatus.CREATED);
+            BankAccountDTO createdAccountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(createdAccount);
+            return new ResponseEntity<>(createdAccountDTO, HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
     @PutMapping("/update/{accountId}")
-    public ResponseEntity<BankAccount> updateBankAccount(@RequestHeader("Authorization") String token, @PathVariable Long accountId, @RequestBody BankAccount bankAccount) {
+    public ResponseEntity<BankAccountDTO> updateBankAccount(@RequestHeader("Authorization") String token,
+                                                            @PathVariable Long accountId,
+                                                            @RequestBody BankAccountDTO bankAccountDTO) {
         User user = getUserFromToken(token);
         if (user.getRole().getName().equals("USER")) {
+            BankAccount bankAccount = BankAccountMapper.INSTANCE.toBankAccount(bankAccountDTO);
             BankAccount updatedAccount = bankAccountService.updateBankAccount(accountId, bankAccount, user.getId());
-            return new ResponseEntity<>(updatedAccount, HttpStatus.OK);
+            BankAccountDTO updatedAccountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(updatedAccount);
+            return new ResponseEntity<>(updatedAccountDTO, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
     @DeleteMapping("/delete/{accountId}")
-    public ResponseEntity<Void> deleteBankAccount(@RequestHeader("Authorization") String token, @PathVariable Long accountId) {
+    public ResponseEntity<Void> deleteBankAccount(@RequestHeader("Authorization") String token,
+                                                  @PathVariable Long accountId) {
         User user = getUserFromToken(token);
         if (user.getRole().getName().equals("USER")) {
             bankAccountService.deleteBankAccount(accountId, user.getId());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<BankAccount> getBankAccount(@RequestHeader("Authorization") String token, @PathVariable Long accountId) {
+    public ResponseEntity<BankAccountDTO> getBankAccount(@RequestHeader("Authorization") String token,
+                                                         @PathVariable Long accountId) {
         User user = getUserFromToken(token);
-        if (user != null) {
-            BankAccount account = bankAccountService.getBankAccount(accountId, user.getId());
-            return new ResponseEntity<>(account, HttpStatus.OK);
-        } else if (user.getRole().getName().equals("ADMIN")) {
-            BankAccount account = bankAccountService.getBankAccountForAdmin(accountId);
-            return new ResponseEntity<>(account, HttpStatus.OK);
+        BankAccount account;
+        if (user.getRole().getName().equals("USER")) {
+            account = bankAccountService.getBankAccount(accountId, user.getId());
+        } else if (user.getRole().getName().equals("EMPLOYEE") || user.getRole().getName().equals("ADMIN")) {
+            account = bankAccountService.getBankAccountForAdmin(accountId);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
+        BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(account);
+        return new ResponseEntity<>(accountDTO, HttpStatus.OK);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<BankAccount>> getAllBankAccounts(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts(@RequestHeader("Authorization") String token) {
         User user = getUserFromToken(token);
         if (user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("EMPLOYEE")) {
             List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
-            return new ResponseEntity<>(accounts, HttpStatus.OK);
+            List<BankAccountDTO> accountDTOs = accounts.stream()
+                    .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(accountDTOs, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.FORBIDDEN);
         }
     }
 
     @PatchMapping("/admin/block/{userId}/{accountId}")
-    public ResponseEntity<BankAccount> blockAccount(@RequestHeader("Authorization") String token, @PathVariable Long userId, @PathVariable Long accountId) {
+    public ResponseEntity<BankAccountDTO> blockAccount(@RequestHeader("Authorization") String token,
+                                                       @PathVariable Long userId,
+                                                       @PathVariable Long accountId) {
         User adminUser = getUserFromToken(token);
         if (adminUser.getRole().getName().equals("ADMIN")) {
             BankAccount account = bankAccountService.blockOrActivateAccount(accountId, userId, false);
-            return new ResponseEntity<>(account, HttpStatus.OK);
+            BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(account);
+            return new ResponseEntity<>(accountDTO, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
     }
 
     @PatchMapping("/admin/activate/{userId}/{accountId}")
-    public ResponseEntity<BankAccount> activateAccount(@RequestHeader("Authorization") String token, @PathVariable Long userId, @PathVariable Long accountId) {
+    public ResponseEntity<BankAccountDTO> activateAccount(@RequestHeader("Authorization") String token,
+                                                          @PathVariable Long userId,
+                                                          @PathVariable Long accountId) {
         User adminUser = getUserFromToken(token);
         if (adminUser.getRole().getName().equals("ADMIN")) {
             BankAccount account = bankAccountService.blockOrActivateAccount(accountId, userId, true);
-            return new ResponseEntity<>(account, HttpStatus.OK);
+            BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(account);
+            return new ResponseEntity<>(accountDTO, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }

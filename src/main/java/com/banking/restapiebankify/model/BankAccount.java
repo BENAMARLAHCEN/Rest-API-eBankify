@@ -1,6 +1,8 @@
 package com.banking.restapiebankify.model;
 
 import com.banking.restapiebankify.model.enums.AccountStatus;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +27,7 @@ public class BankAccount {
     @Column(nullable = false)
     private BigDecimal balance;
 
+    @JsonSerialize
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
