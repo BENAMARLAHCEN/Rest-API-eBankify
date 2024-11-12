@@ -41,11 +41,48 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<String> refreshToken(@RequestHeader("Authorization") String token) {
+        try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+            String username = jwtUtil.extractUsername(token);
+            if (jwtUtil.validateToken(token, username)) {
+                return new ResponseEntity<>(jwtUtil.generateToken(username), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Token is invalid", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Token refresh failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+        try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
+            String username = jwtUtil.extractUsername(token);
+            if (jwtUtil.validateToken(token, username)) {
+                return new ResponseEntity<>("Logout successful", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Token is invalid", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Logout failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     @PostMapping("/validate")
     public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
         try {
+            if (token.startsWith("Bearer ")) {
+                token = token.substring(7);
+            }
             String username = jwtUtil.extractUsername(token);
-            if (jwtUtil.validateToken(token,username)) {
+            if (jwtUtil.validateToken(token, username)) {
                 return new ResponseEntity<>("Token is valid", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Token is invalid", HttpStatus.UNAUTHORIZED);

@@ -2,16 +2,15 @@ package com.banking.restapiebankify.model;
 
 import com.banking.restapiebankify.model.enums.BillStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Table(name = "bills")
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

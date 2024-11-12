@@ -31,16 +31,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public User registerUser(UserDTO userDTO) {
-        User user = UserMapper.toUser(userDTO);
+        User user = UserMapper.INSTANCE.toUser(userDTO);
 
-        // Encode password
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 
-        // Assign default role if not provided (e.g., USER)
         Role role = roleService.findRoleByName(userDTO.getRole() != null ? userDTO.getRole() : "USER");
         user.setRole(role);
 
-        // Save user entity
         return userRepository.save(user);
     }
 
