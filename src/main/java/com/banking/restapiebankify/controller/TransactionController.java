@@ -1,5 +1,6 @@
 package com.banking.restapiebankify.controller;
 
+import com.banking.restapiebankify.dto.TransactionDTO;
 import com.banking.restapiebankify.model.Transaction;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.TransactionService;
@@ -28,15 +29,18 @@ public class TransactionController {
     }
 
     private User getUserFromToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
         String username = jwtUtil.extractUsername(token);
         return userService.findUserByUsername(username);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Transaction> createTransaction(@RequestHeader("Authorization") String token, @RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> createTransaction(@RequestHeader("Authorization") String token, @RequestBody TransactionDTO transactionDTO) {
         User user = getUserFromToken(token);
         if (user.getRole().getName().equals("USER")) {
-            Transaction createdTransaction = transactionService.createTransaction(transaction, user.getId());
+            Transaction createdTransaction = transactionService.createTransaction(transactionDTO, user.getId());
             return new ResponseEntity<>(createdTransaction, HttpStatus.CREATED);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -69,6 +73,9 @@ public class TransactionController {
     public ResponseEntity<List<Transaction>> getTransactionsForAccount(@RequestHeader("Authorization") String token, @PathVariable Long accountId) {
         User user = getUserFromToken(token);
         if (user.getRole().getName().equals("USER") || user.getRole().getName().equals("EMPLOYEE") || user.getRole().getName().equals("ADMIN")) {
+            if (user.getRole().getName().equals("USER") && !user.getAccounts().stream().anyMatch(account -> account.getId().equals(accountId))) {
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
             List<Transaction> transactions = transactionService.getTransactionsForAccount(accountId, user.getId());
             return new ResponseEntity<>(transactions, HttpStatus.OK);
         } else {
