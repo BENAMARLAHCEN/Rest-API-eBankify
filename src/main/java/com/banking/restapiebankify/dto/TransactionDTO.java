@@ -15,12 +15,12 @@ import java.time.LocalDateTime;
 public class TransactionDTO {
     private Long id;
     private BigDecimal amount;
-    private String type; // CLASSIC, INSTANT, STANDING_ORDER
-    private String status; // PENDING, COMPLETED, REJECTED
-    private Long fromAccountId; // ID of the account initiating the transaction
-    private Long toAccountId; // ID of the account receiving the transaction
+    private String type;
+    private String status;
+    private Long fromAccountId;
+    private Long toAccountId;
     private LocalDateTime timestamp;
-    private String frequency; // DAILY, WEEKLY, MONTHLY, etc., for STANDING_ORDER transactions
-    private LocalDateTime startDate; // Start date for STANDING_ORDER transactions
-    private LocalDateTime endDate; // End date for STANDING_ORDER transactions
+    private String frequency;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 }

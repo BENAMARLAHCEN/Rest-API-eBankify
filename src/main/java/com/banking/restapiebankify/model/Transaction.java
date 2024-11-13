@@ -43,8 +43,13 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    // Fields for Standing Order
     private String frequency; // DAILY, WEEKLY, MONTHLY, etc.
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+
+    @ManyToOne
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    private String remarks;
 }
