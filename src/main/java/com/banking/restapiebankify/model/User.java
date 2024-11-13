@@ -48,4 +48,6 @@ public class User {
     @JsonBackReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private Set<BankAccount> accounts;
+
+
 }
