@@ -30,10 +30,10 @@ public class Loan {
     @Column(nullable = false)
     private BigDecimal interestRate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime loanStartDate;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDateTime loanEndDate;
 
     @Enumerated(EnumType.STRING)
