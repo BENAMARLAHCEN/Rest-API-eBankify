@@ -1,4 +1,11 @@
 package com.banking.restapiebankify.repository;
 
-public class LoanRepository {
+import com.banking.restapiebankify.model.Loan;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface LoanRepository extends JpaRepository<Loan, Long> {
+    List<Loan> findByUserId(Long userId);
 }
