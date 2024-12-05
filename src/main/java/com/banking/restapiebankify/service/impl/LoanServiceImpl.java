@@ -8,7 +8,6 @@ import com.banking.restapiebankify.model.enums.LoanStatus;
 import com.banking.restapiebankify.repository.LoanRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.LoanService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,21 +20,23 @@ public class LoanServiceImpl implements LoanService {
     private final LoanRepository loanRepository;
     private final UserRepository userRepository;
 
-    @Autowired
     public LoanServiceImpl(LoanRepository loanRepository, UserRepository userRepository) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
     }
 
     @Override
-    public Loan requestLoan(LoanDTO loanDTO, User user) {
-        Loan loan = LoanMapper.INSTANCE.toLoan(loanDTO);
+    public Loan requestLoan(LoanDTO loanDTO, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getBirthday().plusYears(18).isAfter(LocalDate.now())) {
             throw new RuntimeException("User is not eligible for a loan: must be at least 18 years old");
         }
-        if (loan.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (loanDTO.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Loan amount must be greater than 0");
         }
+
+        Loan loan = LoanMapper.INSTANCE.toLoan(loanDTO);
         loan.setUser(user);
         loan.setStatus(LoanStatus.PENDING);
         return loanRepository.save(loan);
