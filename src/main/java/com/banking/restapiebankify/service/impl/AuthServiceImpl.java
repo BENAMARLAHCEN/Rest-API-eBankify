@@ -4,57 +4,58 @@ import com.banking.restapiebankify.dto.UserDTO;
 import com.banking.restapiebankify.mapper.UserMapper;
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;
+import com.banking.restapiebankify.repository.RoleRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.AuthService;
 import com.banking.restapiebankify.service.RoleService;
 import com.banking.restapiebankify.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-    private final UserRepository userRepository;
-    private final RoleService roleService;
-    private final JwtUtil jwtUtil;
-    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    public AuthServiceImpl(UserRepository userRepository, RoleService roleService, JwtUtil jwtUtil) {
+
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthServiceImpl(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
-        this.roleService = roleService;
-        this.jwtUtil = jwtUtil;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+    }
+
+    public User findUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("Invalid user credentials"));
     }
 
     @Override
     public User registerUser(UserDTO userDTO) {
         User user = UserMapper.INSTANCE.toUser(userDTO);
 
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
+        }
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
 
-        Role role = roleService.findRoleByName(userDTO.getRole() != null ? userDTO.getRole() : "USER");
+        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));  // Use injected encoder
+
+        Role role = roleRepository.findByName(
+                        Optional.ofNullable(userDTO.getRole()).orElse("USER"))
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
         user.setRole(role);
 
         return userRepository.save(user);
-    }
-
-    @Override
-    public User findUserByUsername(String username) {
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        return userOptional.orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    @Override
-    public String login(String username, String password) {
-        User user = findUserByUsername(username);
-        if (passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateToken(username);
-        } else {
-            throw new RuntimeException("Invalid credentials");
-        }
     }
 
 }

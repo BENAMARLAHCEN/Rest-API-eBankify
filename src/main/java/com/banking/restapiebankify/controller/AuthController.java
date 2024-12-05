@@ -1,94 +1,80 @@
 package com.banking.restapiebankify.controller;
 
+import com.banking.restapiebankify.config.JwtTokenProvider;
+import com.banking.restapiebankify.dto.LoginRequest;
 import com.banking.restapiebankify.dto.UserDTO;
+import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.AuthService;
 import com.banking.restapiebankify.service.UserService;
 import com.banking.restapiebankify.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class AuthController {
     private final AuthService authService;
-    private final JwtUtil jwtUtil;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthController(AuthService authService, JwtUtil jwtUtil) {
+    public AuthController(AuthService authService, JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager) {
         this.authService = authService;
-        this.jwtUtil = jwtUtil;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody UserDTO userDTO) {
-        try {
-            authService.registerUser(userDTO);
-            return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>("User registration failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO UserDTO) {
+        User user = authService.registerUser(UserDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDTO userDTO) {
-        try {
-            String token = authService.login(userDTO.getUsername(), userDTO.getPassword());
-            return new ResponseEntity<>(token, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Login failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
-        }
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        User user = authService.findUserByUsername(loginRequest.getUsername());
+        String jwt = jwtTokenProvider.generateToken(user);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("token", jwt);
+        response.put("userId", user.getId().toString());
+        response.put("role", user.getRole().getName());
+
+        return ResponseEntity.ok(response);
+
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<String> refreshToken(@RequestHeader("Authorization") String token) {
-        try {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-            String username = jwtUtil.extractUsername(token);
-            if (jwtUtil.validateToken(token, username)) {
-                return new ResponseEntity<>(jwtUtil.generateToken(username), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Token is invalid", HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>("Token refresh failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
-        try {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-            String username = jwtUtil.extractUsername(token);
-            if (jwtUtil.validateToken(token, username)) {
-                return new ResponseEntity<>("Logout successful", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Token is invalid", HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>("Logout failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
-        }
-    }
-
-    @PostMapping("/validate")
-    public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
-        try {
-            if (token.startsWith("Bearer ")) {
-                token = token.substring(7);
-            }
-            String username = jwtUtil.extractUsername(token);
-            if (jwtUtil.validateToken(token, username)) {
-                return new ResponseEntity<>("Token is valid", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>("Token is invalid", HttpStatus.UNAUTHORIZED);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>("Token validation failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
-        }
-    }
+//    @PostMapping("/refresh")
+//    public ResponseEntity<String> refreshToken(@RequestHeader("Authorization") String token) {
+//
+//    }
+//
+//    @PostMapping("/logout")
+//    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+//
+//    }
+//
+//    @PostMapping("/validate")
+//    public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
+//
+//    }
 }
