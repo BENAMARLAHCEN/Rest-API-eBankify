@@ -10,9 +10,9 @@ import com.banking.restapiebankify.repository.BankAccountRepository;
 import com.banking.restapiebankify.repository.BillRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.BillService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,7 +23,6 @@ public class BillServiceImpl implements BillService {
     private final UserRepository userRepository;
     private final BankAccountRepository bankAccountRepository;
 
-    @Autowired
     public BillServiceImpl(BillRepository billRepository, UserRepository userRepository, BankAccountRepository bankAccountRepository) {
         this.billRepository = billRepository;
         this.userRepository = userRepository;
@@ -33,6 +32,9 @@ public class BillServiceImpl implements BillService {
     @Override
     public Bill createBill(BillDTO billDTO) {
         Bill bill = BillMapper.INSTANCE.toBill(billDTO);
+        User user = userRepository.findById(billDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        bill.setUser(user);
         bill.setStatus(BillStatus.UNPAID);
         bill.setDueDate(LocalDateTime.now().plusMonths(1));
         return billRepository.save(bill);
@@ -50,10 +52,10 @@ public class BillServiceImpl implements BillService {
         BankAccount bankAccount = bankAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new RuntimeException("Bank account not found"));
         if (!bill.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You are not authorized to pay this bill");
+            throw new RuntimeException("Unauthorized access to this bill");
         }
         if (!bankAccount.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You are not authorized to pay from this account");
+            throw new RuntimeException("Unauthorized access to this bank account");
         }
         if (bill.getStatus().equals(BillStatus.PAID)) {
             throw new RuntimeException("Bill is already paid");
@@ -61,8 +63,8 @@ public class BillServiceImpl implements BillService {
         if (bankAccount.getBalance().compareTo(bill.getAmount()) < 0) {
             throw new RuntimeException("Insufficient funds");
         }
-        bill.setStatus(BillStatus.PAID);
         bankAccount.setBalance(bankAccount.getBalance().subtract(bill.getAmount()));
+        bill.setStatus(BillStatus.PAID);
         bankAccountRepository.save(bankAccount);
         return billRepository.save(bill);
     }

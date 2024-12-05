@@ -1,65 +1,52 @@
 package com.banking.restapiebankify.controller;
 
 import com.banking.restapiebankify.dto.BillDTO;
+import com.banking.restapiebankify.mapper.BillMapper;
 import com.banking.restapiebankify.model.Bill;
-import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.BillService;
-import com.banking.restapiebankify.service.UserService;
-import com.banking.restapiebankify.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bills")
 public class BillController {
 
     private final BillService billService;
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
 
-    @Autowired
-    public BillController(BillService billService, UserService userService, JwtUtil jwtUtil) {
+    public BillController(BillService billService) {
         this.billService = billService;
-        this.userService = userService;
-        this.jwtUtil = jwtUtil;
-    }
-
-    private User getUserFromToken(String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        String username = jwtUtil.extractUsername(token);
-        return userService.findUserByUsername(username);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Bill> createBill(@RequestHeader("Authorization") String token, @RequestBody BillDTO billDTO) {
-        User user = getUserFromToken(token);
-        if (user == null || user.getRole().getName().equals("USER")) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-        Bill createdBill = billService.createBill(billDTO);
-        return new ResponseEntity<>(createdBill, HttpStatus.CREATED);
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    public ResponseEntity<BillDTO> createBill(@RequestBody BillDTO billDTO) {
+        Bill bill = billService.createBill(billDTO);
+        return ResponseEntity.status(201).body(BillMapper.INSTANCE.toBillDTO(bill));
     }
 
     @GetMapping("/myBill")
-    public ResponseEntity<List<Bill>> getBillsForUser(@RequestHeader("Authorization") String token) {
-        User user = getUserFromToken(token);
-        if (user == null || user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("EMPLOYEE")) {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-        List<Bill> bills = billService.getBillsByUser(user.getId());
-        return new ResponseEntity<>(bills, HttpStatus.OK);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<BillDTO>> getBillsForUser() {
+        List<Bill> bills = billService.getBillsByUser(getCurrentUserId());
+        List<BillDTO> billDTOs = bills.stream()
+                .map(BillMapper.INSTANCE::toBillDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(billDTOs);
     }
 
     @PatchMapping("/pay/{billId}")
-    public ResponseEntity<Bill> payBill(@RequestHeader("Authorization") String token, @PathVariable Long billId, @RequestParam String acountNumber) {
-        User user = getUserFromToken(token);
-        Bill paidBill = billService.payBill(billId, user.getId(), acountNumber);
-        return new ResponseEntity<>(paidBill, HttpStatus.OK);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<BillDTO> payBill(@PathVariable Long billId, @RequestParam String accountNumber) {
+        Bill paidBill = billService.payBill(billId, getCurrentUserId(), accountNumber);
+        return ResponseEntity.ok(BillMapper.INSTANCE.toBillDTO(paidBill));
+    }
+
+    private Long getCurrentUserId() {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        return Long.parseLong(username); // Adjust logic if `username` isn't directly the ID
     }
 }

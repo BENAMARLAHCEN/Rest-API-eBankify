@@ -3,16 +3,13 @@ package com.banking.restapiebankify.controller;
 import com.banking.restapiebankify.dto.BankAccountDTO;
 import com.banking.restapiebankify.mapper.BankAccountMapper;
 import com.banking.restapiebankify.model.BankAccount;
-import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.BankAccountService;
-import com.banking.restapiebankify.service.UserService;
-import com.banking.restapiebankify.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,120 +18,92 @@ import java.util.stream.Collectors;
 public class BankAccountController {
 
     private final BankAccountService bankAccountService;
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
 
-    @Autowired
-    public BankAccountController(BankAccountService bankAccountService, UserService userService, JwtUtil jwtUtil) {
+    public BankAccountController(BankAccountService bankAccountService) {
         this.bankAccountService = bankAccountService;
-        this.userService = userService;
-        this.jwtUtil = jwtUtil;
     }
 
-    private User getUserFromToken(String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        String username = jwtUtil.extractUsername(token);
-        return userService.findUserByUsername(username);
+    // Utility to get the current username
+    private String getCurrentUsername() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
+    // Create a new bank account (User Only)
     @PostMapping("/create")
-    public ResponseEntity<BankAccountDTO> createBankAccount(@RequestHeader("Authorization") String token,
-                                                            @RequestBody BankAccountDTO bankAccountDTO) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("USER")) {
-            BankAccount bankAccount = BankAccountMapper.INSTANCE.toBankAccount(bankAccountDTO);
-            BankAccount createdAccount = bankAccountService.createBankAccount(bankAccount, user.getId());
-            BankAccountDTO createdAccountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(createdAccount);
-            return new ResponseEntity<>(createdAccountDTO, HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<BankAccountDTO> createBankAccount(@RequestBody BankAccountDTO bankAccountDTO) {
+        BankAccount bankAccount = BankAccountMapper.INSTANCE.toBankAccount(bankAccountDTO);
+        BankAccount createdAccount = bankAccountService.createBankAccount(bankAccount, getCurrentUsername());
+        BankAccountDTO createdAccountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(createdAccount);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdAccountDTO);
     }
 
+    // Update an existing bank account (User Only)
     @PutMapping("/update/{accountId}")
-    public ResponseEntity<BankAccountDTO> updateBankAccount(@RequestHeader("Authorization") String token,
-                                                            @PathVariable Long accountId,
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<BankAccountDTO> updateBankAccount(@PathVariable Long accountId,
                                                             @RequestBody BankAccountDTO bankAccountDTO) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("USER")) {
-            BankAccount bankAccount = BankAccountMapper.INSTANCE.toBankAccount(bankAccountDTO);
-            BankAccount updatedAccount = bankAccountService.updateBankAccount(accountId, bankAccount, user.getId());
-            BankAccountDTO updatedAccountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(updatedAccount);
-            return new ResponseEntity<>(updatedAccountDTO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+        BankAccount bankAccount = BankAccountMapper.INSTANCE.toBankAccount(bankAccountDTO);
+        BankAccount updatedAccount = bankAccountService.updateBankAccount(accountId, bankAccount, getCurrentUsername());
+        BankAccountDTO updatedAccountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(updatedAccount);
+        return ResponseEntity.ok(updatedAccountDTO);
     }
 
+    // Delete a bank account (User Only)
     @DeleteMapping("/delete/{accountId}")
-    public ResponseEntity<Void> deleteBankAccount(@RequestHeader("Authorization") String token,
-                                                  @PathVariable Long accountId) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("USER")) {
-            bankAccountService.deleteBankAccount(accountId, user.getId());
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Void> deleteBankAccount(@PathVariable Long accountId) {
+        bankAccountService.deleteBankAccount(accountId, getCurrentUsername());
+        return ResponseEntity.ok().build();
     }
 
+    // Retrieve a single bank account (User, Employee, or Admin)
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<BankAccountDTO> getBankAccount(@RequestHeader("Authorization") String token,
-                                                         @PathVariable Long accountId) {
-        User user = getUserFromToken(token);
-        BankAccount account;
-        if (user.getRole().getName().equals("USER")) {
-            account = bankAccountService.getBankAccount(accountId, user.getId());
-        } else if (user.getRole().getName().equals("EMPLOYEE") || user.getRole().getName().equals("ADMIN")) {
-            account = bankAccountService.getBankAccountForAdmin(accountId);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<BankAccountDTO> getBankAccount(@PathVariable Long accountId) {
+        BankAccount account = bankAccountService.getBankAccountForUserOrAdmin(accountId, getCurrentUsername());
         BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(account);
-        return new ResponseEntity<>(accountDTO, HttpStatus.OK);
+        return ResponseEntity.ok(accountDTO);
     }
 
+    @GetMapping("/myAccounts")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<BankAccountDTO>> getBankAccountsForUser() {
+        List<BankAccount> accounts = bankAccountService.getBankAccountsForUser(getCurrentUsername());
+        List<BankAccountDTO> accountDTOs = accounts.stream()
+                .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(accountDTOs);
+    }
+
+    // Retrieve all bank accounts (Admin or Employee Only)
     @GetMapping("/all")
-    public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts(@RequestHeader("Authorization") String token) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("EMPLOYEE")) {
-            List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
-            List<BankAccountDTO> accountDTOs = accounts.stream()
-                    .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
-                    .collect(Collectors.toList());
-            return new ResponseEntity<>(accountDTOs, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
+        List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
+        List<BankAccountDTO> accountDTOs = accounts.stream()
+                .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(accountDTOs);
     }
 
+    // Block a user's bank account (Admin Only)
     @PatchMapping("/admin/block/{userId}/{accountId}")
-    public ResponseEntity<BankAccountDTO> blockAccount(@RequestHeader("Authorization") String token,
-                                                       @PathVariable Long userId,
-                                                       @PathVariable Long accountId) {
-        User adminUser = getUserFromToken(token);
-        if (adminUser.getRole().getName().equals("ADMIN")) {
-            BankAccount account = bankAccountService.blockOrActivateAccount(accountId, userId, false);
-            BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(account);
-            return new ResponseEntity<>(accountDTO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BankAccountDTO> blockBankAccount(@PathVariable Long userId,
+                                                           @PathVariable Long accountId) {
+        BankAccount blockedAccount = bankAccountService.blockOrActivateAccount(accountId, userId, false);
+        BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(blockedAccount);
+        return ResponseEntity.ok(accountDTO);
     }
 
+    // Activate a user's bank account (Admin Only)
     @PatchMapping("/admin/activate/{userId}/{accountId}")
-    public ResponseEntity<BankAccountDTO> activateAccount(@RequestHeader("Authorization") String token,
-                                                          @PathVariable Long userId,
-                                                          @PathVariable Long accountId) {
-        User adminUser = getUserFromToken(token);
-        if (adminUser.getRole().getName().equals("ADMIN")) {
-            BankAccount account = bankAccountService.blockOrActivateAccount(accountId, userId, true);
-            BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(account);
-            return new ResponseEntity<>(accountDTO, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BankAccountDTO> activateBankAccount(@PathVariable Long userId,
+                                                              @PathVariable Long accountId) {
+        BankAccount activatedAccount = bankAccountService.blockOrActivateAccount(accountId, userId, true);
+        BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(activatedAccount);
+        return ResponseEntity.ok(accountDTO);
     }
 }

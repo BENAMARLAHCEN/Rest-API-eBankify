@@ -1,85 +1,69 @@
 package com.banking.restapiebankify.controller;
 
 import com.banking.restapiebankify.dto.LoanDTO;
+import com.banking.restapiebankify.mapper.LoanMapper;
 import com.banking.restapiebankify.model.Loan;
-import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.LoanService;
-import com.banking.restapiebankify.service.UserService;
-import com.banking.restapiebankify.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/loans")
 public class LoanController {
 
     private final LoanService loanService;
-    private final UserService userService;
-    private final JwtUtil jwtUtil;
 
-    @Autowired
-    public LoanController(LoanService loanService, UserService userService, JwtUtil jwtUtil) {
+    public LoanController(LoanService loanService) {
         this.loanService = loanService;
-        this.userService = userService;
-        this.jwtUtil = jwtUtil;
-    }
-
-    private User getUserFromToken(String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        String username = jwtUtil.extractUsername(token);
-        return userService.findUserByUsername(username);
     }
 
     @PostMapping("/request")
-    public ResponseEntity<Loan> requestLoan(@RequestHeader("Authorization") String token, @RequestBody LoanDTO loanDTO) {
-        User user = getUserFromToken(token);
-        Loan requestedLoan = loanService.requestLoan(loanDTO, user);
-        return new ResponseEntity<>(requestedLoan, HttpStatus.CREATED);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<LoanDTO> requestLoan(@RequestBody LoanDTO loanDTO) {
+        Loan loan = loanService.requestLoan(loanDTO, getCurrentUserId());
+        return ResponseEntity.status(201).body(LoanMapper.INSTANCE.toLoanDTO(loan));
     }
 
     @PatchMapping("/approve/{loanId}")
-    public ResponseEntity<Loan> approveLoan(@RequestHeader("Authorization") String token, @PathVariable Long loanId) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("EMPLOYEE") || user.getRole().getName().equals("ADMIN")) {
-            Loan approvedLoan = loanService.approveLoan(loanId, user.getId());
-            return new ResponseEntity<>(approvedLoan, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<LoanDTO> approveLoan(@PathVariable Long loanId) {
+        Loan loan = loanService.approveLoan(loanId, getCurrentUserId());
+        return ResponseEntity.ok(LoanMapper.INSTANCE.toLoanDTO(loan));
     }
 
     @PatchMapping("/reject/{loanId}")
-    public ResponseEntity<Loan> rejectLoan(@RequestHeader("Authorization") String token, @PathVariable Long loanId, @RequestParam String remarks) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("EMPLOYEE") || user.getRole().getName().equals("ADMIN")) {
-            Loan rejectedLoan = loanService.rejectLoan(loanId, user.getId(), remarks);
-            return new ResponseEntity<>(rejectedLoan, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<LoanDTO> rejectLoan(@PathVariable Long loanId, @RequestParam String remarks) {
+        Loan loan = loanService.rejectLoan(loanId, getCurrentUserId(), remarks);
+        return ResponseEntity.ok(LoanMapper.INSTANCE.toLoanDTO(loan));
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<Loan>> getLoansForUser(@RequestHeader("Authorization") String token) {
-        User user = getUserFromToken(token);
-        List<Loan> loans = loanService.getLoansByUser(user.getId());
-        return new ResponseEntity<>(loans, HttpStatus.OK);
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<List<LoanDTO>> getLoansForUser() {
+        List<Loan> loans = loanService.getLoansByUser(getCurrentUserId());
+        List<LoanDTO> loanDTOs = loans.stream()
+                .map(LoanMapper.INSTANCE::toLoanDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(loanDTOs);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Loan>> getAllLoans(@RequestHeader("Authorization") String token) {
-        User user = getUserFromToken(token);
-        if (user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("EMPLOYEE")) {
-            List<Loan> loans = loanService.getAllLoans();
-            return new ResponseEntity<>(loans, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    public ResponseEntity<List<LoanDTO>> getAllLoans() {
+        List<Loan> loans = loanService.getAllLoans();
+        List<LoanDTO> loanDTOs = loans.stream()
+                .map(LoanMapper.INSTANCE::toLoanDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(loanDTOs);
+    }
+
+    private Long getCurrentUserId() {
+        String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        return Long.parseLong(username); // Adjust logic if `username` is not the user ID
     }
 }

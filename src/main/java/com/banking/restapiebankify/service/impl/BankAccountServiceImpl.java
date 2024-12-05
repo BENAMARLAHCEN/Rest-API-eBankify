@@ -1,5 +1,6 @@
 package com.banking.restapiebankify.service.impl;
 
+import com.banking.restapiebankify.exception.BankAccountNotFoundException;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.model.enums.AccountStatus;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BankAccountServiceImpl implements BankAccountService {
@@ -24,44 +26,42 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccount createBankAccount(BankAccount bankAccount, Long userId) {
-        User user = userRepository.findById(userId)
+    public BankAccount createBankAccount(BankAccount bankAccount, String username) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found."));
         bankAccount.setUser(user);
+        bankAccount.setAccountNumber(UUID.randomUUID().toString());
         bankAccount.setStatus(AccountStatus.ACTIVE);
         return bankAccountRepository.save(bankAccount);
     }
 
     @Override
-    public BankAccount updateBankAccount(Long accountId, BankAccount bankAccount, Long userId) {
-        BankAccount existingAccount = bankAccountRepository.findByIdAndUserId(accountId, userId)
-                .orElseThrow(() -> new RuntimeException("Account not found or not owned by user."));
+    public BankAccount updateBankAccount(Long accountId, BankAccount bankAccount, String username) {
+        BankAccount existingAccount = bankAccountRepository.findByIdAndUserId(accountId, userRepository.findByUsername(username)
+                        .orElseThrow(() -> new RuntimeException("User not found.")).getId())
+                .orElseThrow(() -> new BankAccountNotFoundException("Account not found or not owned by user."));
         existingAccount.setBalance(bankAccount.getBalance());
         return bankAccountRepository.save(existingAccount);
     }
 
     @Override
-    public void deleteBankAccount(Long accountId, Long userId) {
-        BankAccount existingAccount = bankAccountRepository.findByIdAndUserId(accountId, userId)
-                .orElseThrow(() -> new RuntimeException("Account not found or not owned by user."));
+    public void deleteBankAccount(Long accountId, String username) {
+        BankAccount existingAccount = bankAccountRepository.findByIdAndUserId(accountId, userRepository.findByUsername(username)
+                        .orElseThrow(() -> new RuntimeException("User not found.")).getId())
+                .orElseThrow(() -> new BankAccountNotFoundException("Account not found or not owned by user."));
         bankAccountRepository.delete(existingAccount);
     }
 
     @Override
-    public BankAccount getBankAccount(Long accountId, Long userId) {
-        return bankAccountRepository.findByIdAndUserId(accountId, userId)
-                .orElseThrow(() -> new RuntimeException("Account not found or not owned by user."));
-    }
-
-    @Override
-    public BankAccount getBankAccountForAdmin(Long accountId) {
-        return bankAccountRepository.findById(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found."));
-    }
-
-    @Override
-    public List<BankAccount> getAllBankAccountsForUser(Long userId) {
-        return bankAccountRepository.findAllByUserId(userId);
+    public BankAccount getBankAccountForUserOrAdmin(Long accountId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+        if (user.getRole().getName().equals("ADMIN") || user.getRole().getName().equals("EMPLOYEE")) {
+            return bankAccountRepository.findById(accountId)
+                    .orElseThrow(() -> new BankAccountNotFoundException("Account not found."));
+        }
+        return bankAccountRepository.findByIdAndUserId(accountId, user.getId())
+                .orElseThrow(() -> new BankAccountNotFoundException("Account not found or not owned by user."));
     }
 
     @Override
@@ -72,8 +72,15 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Override
     public BankAccount blockOrActivateAccount(Long accountId, Long userId, boolean activate) {
         BankAccount account = bankAccountRepository.findByIdAndUserId(accountId, userId)
-                .orElseThrow(() -> new RuntimeException("Account not found for the specified user."));
+                .orElseThrow(() -> new BankAccountNotFoundException("Account not found for the specified user."));
         account.setStatus(activate ? AccountStatus.ACTIVE : AccountStatus.BLOCKED);
         return bankAccountRepository.save(account);
+    }
+
+    @Override
+    public List<BankAccount> getBankAccountsForUser(String currentUsername) {
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+        return bankAccountRepository.findByUserId(user.getId());
     }
 }
