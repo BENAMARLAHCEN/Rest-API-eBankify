@@ -24,3 +24,8 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+jwt:
+  secret: lahcen-secret-key-is-very-long-and-secure-key
+  expiration: 3600000
+
+debug: true
