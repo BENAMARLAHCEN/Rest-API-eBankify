@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BankAccountRepository extends JpaRepository<BankAccount, Long> {
+
     Optional<BankAccount> findByIdAndUserId(Long id, Long userId);
-    List<BankAccount> findAllByUserId(Long userId);
+
     Optional<BankAccount> findByAccountNumber(String accountNumber);
+
+    List<BankAccount> findByUserId(Long id);
 }
