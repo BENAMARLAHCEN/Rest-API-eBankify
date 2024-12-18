@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bank_management
+    url: jdbc:postgresql://jenkins_network:5432/bank_management
     username: admin
     password: admin
     driver-class-name: org.postgresql.Driver
