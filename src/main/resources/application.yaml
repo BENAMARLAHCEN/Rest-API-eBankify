@@ -31,9 +31,5 @@ jwt:
 debug: true
 
 sonar:
-  projectKey: ebankify
-  projectName: ebankify
-  host:
-    url: http://localhost:9000
-  token: sqp_29a35c42d5fae893936c74ad2ae12cd3bf81c5f2
+  login: ${SONAR_PASSWORD}
 
