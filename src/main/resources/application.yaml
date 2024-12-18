@@ -18,6 +18,12 @@ spring:
 logging:
   level:
     org:
+      springframework:
+        data:
+          jpa:
+            repository:
+              query:
+                JpaQueryMethod: DEBUG
       hibernate:
         SQL: DEBUG
         type:
