@@ -13,36 +13,6 @@ services:
       - "5432:5432"
     networks:
       - jenkins_network
-#  app:
-#    image: my-ebankify-app
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    ports:
-#      - "8080:8080"
-#    environment:
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/bank_management
-#      - SPRING_DATASOURCE_USERNAME=admin
-#      - SPRING_DATASOURCE_PASSWORD=admin
-#    depends_on:
-#      - db
-#    networks:
-#      - jenkins_network
-
-#  jenkins:
-#    image: jenkins/jenkins:lts
-#    container_name: jenkins-lts
-#    user: root
-#    ports:
-#      - "8081:8080"
-#      - "50000:50000"
-#    volumes:
-#      - jenkins_home:/var/jenkins_home
-#      - /var/run/docker.sock:/var/run/docker.sock
-##    environment:
-##      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
-#    networks:
-#      - jenkins_network
 
   sonar-postgres:
     image: postgres:15
@@ -53,7 +23,7 @@ services:
       - POSTGRES_PASSWORD=sonar
       - POSTGRES_DB=sonarqube
     ports:
-      - "5433:5433" # SonarQube DB exposed internally
+      - "5433:5433"
     networks:
       - jenkins_network
 
@@ -71,6 +41,23 @@ services:
       - "9000:9000"
     networks:
       - jenkins_network
+
+#  app:
+#    image: my-ebankify-app
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/bank_management
+#      - SPRING_DATASOURCE_USERNAME=admin
+#      - SPRING_DATASOURCE_PASSWORD=admin
+#    depends_on:
+#      - db
+#    networks:
+#      - jenkins_network
+
 
 networks:
   jenkins_network:
