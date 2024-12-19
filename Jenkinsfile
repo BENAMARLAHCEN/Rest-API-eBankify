@@ -36,7 +36,7 @@ pipeline {
 
         stage('Unit Tests & Coverage') {
             steps {
-                sh './mvn test'
+                sh './mvnw test'
             }
             post {
                 always {
