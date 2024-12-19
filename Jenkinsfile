@@ -7,7 +7,7 @@ pipeline {
     }
     environment {
         SONAR_PROJECT_KEY = "com.banking:restapiebankify"
-        SONAR_TOKEN = "sqa_503f755eb311a6f82b1fe6ad786bbebe6f20862f"
+        SONAR_TOKEN = "sqa_d9c07f15818cd84a813dc457ff68127423774c67"
         SONAR_HOST_URL = "http://host.docker.internal:9000"
     }
     stages {
@@ -89,24 +89,9 @@ pipeline {
         }
     }
     post {
-        success {
-            echo "Build réussi !"
-            mail to: 'dev-team@example.com',
-                 subject: "SUCCESS: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}",
-                 body: "Build réussi.\n\nDétails : ${env.BUILD_URL}"
-            slackSend color: 'good',
-                      message: "SUCCESS: Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} succeeded!\nDetails: ${env.BUILD_URL}"
-        }
-        failure {
-            echo "Build échoué !"
-            mail to: 'rabiaaitimghi7@gmail.com',
-                 subject: "FAILURE: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}",
-                 body: "Build échoué.\n\nDétails : ${env.BUILD_URL}"
-            slackSend color: 'danger',
-                      message: "FAILURE: Build #${env.BUILD_NUMBER} of ${env.JOB_NAME} failed!\nDetails: ${env.BUILD_URL}"
-        }
         always {
-            echo "Pipeline execution complete."
+            echo "Cleaning up workspace..."
+            cleanWs()
         }
     }
 

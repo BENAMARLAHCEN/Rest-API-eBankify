@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
-		<sonar.login>sqa_cfe4530386446e5fbee782dc0e150a78eee07479</sonar.login>
+		<sonar.login>sqa_d9c07f15818cd84a813dc457ff68127423774c67</sonar.login>
 	</properties>
 	<dependencies>
 		<!-- Spring Boot Dependencies -->
