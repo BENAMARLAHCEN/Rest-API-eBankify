@@ -1,98 +1,90 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.8.8-eclipse-temurin-17'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
+
     environment {
-        SONAR_PROJECT_KEY = "com.banking:restapiebankify"
-        SONAR_TOKEN = "sqa_d9c07f15818cd84a813dc457ff68127423774c67"
-        SONAR_HOST_URL = "http://host.docker.internal:9000"
+        PATH = "/usr/bin:/usr/local/bin:${env.PATH}"
     }
+
     stages {
-        stage('Install Tools') {
+        stage('Checkout') {
             steps {
-                script {
-                    echo "Installing jq and Docker CLI..."
-                    sh '''
-                    apt-get update && apt-get install -y jq apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-                    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-                    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-                    apt-get update && apt-get install -y docker-ce-cli
-                    '''
-                }
+                git branch: 'DevOps', url: 'https://github.com/BENAMARLAHCEN/Rest-API-eBankify.git'
             }
         }
-        stage('Checkout Code') {
+
+        stage('Build') {
             steps {
-                script {
-                    echo "Checking out code from GitHub..."
-                    checkout([$class: 'GitSCM',
-                        branches: [[name: '*/DevOps']],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/BENAMARLAHCEN/Rest-API-eBankify.git'
-                        ]]
-                    ])
-                }
+                sh 'chmod +x mvnw'
+                sh './mvnw clean install -DskipTests'
             }
         }
-        stage('Build and SonarQube Analysis') {
+
+        stage('SonarQube Analysis') {
             steps {
-                echo "Running Maven build and SonarQube analysis..."
-                sh """
-                mvn clean package sonar:sonar \
-                  -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-                  -Dsonar.host.url=$SONAR_HOST_URL \
-                  -Dsonar.login=$SONAR_TOKEN
-                """
-            }
-        }
-        stage('Quality Gate Check') {
-            steps {
-                script {
-                    echo "Checking SonarQube Quality Gate..."
-                    def qualityGate = sh(
-                        script: """
-                        curl -s -u "$SONAR_TOKEN:" \
-                        "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY" \
-                        | tee response.json | jq -r '.projectStatus.status'
-                        """,
-                        returnStdout: true
-                    ).trim()
-                    if (qualityGate != "OK") {
-                        error "Quality Gate failed! Stopping the build."
+                withSonarQubeEnv('SonarQubeDevops') {
+                    withCredentials([string(credentialsId: 'sonar-token2', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            ./mvnw sonar:sonar \
+                            -Dsonar.projectKey=com.banking:restapiebankify \
+                            -Dsonar.host.url=http://host.docker.internal:9000 \
+                            -Dsonar.login=$SONAR_TOKEN
+                        '''
                     }
-                    echo "Quality Gate passed! Proceeding..."
                 }
             }
         }
+
+        stage('Unit Tests & Coverage') {
+            steps {
+                sh './mvnw test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                    jacoco execPattern: 'target/jacoco.exec', classPattern: 'target/classes', sourcePattern: 'src/main/java'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        withSonarQubeEnv('SonarQubeDevops') {
+                            def qg = waitForQualityGate()
+                            if (qg.status != 'OK') {
+                                error "Quality Gate failed: ${qg.status}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Manual Approval') {
+            steps {
+                script {
+                    input message: "Approve deployment?", submitter: "admin"
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                script {
-                    echo "Building Docker Image..."
-                    sh 'docker build -t springboot-app .'
-                }
+                sh 'docker build -t myapp:latest .'
             }
         }
-        stage('Deploy Docker Container') {
+
+        stage('Run Container') {
             steps {
-                script {
-                    echo "Deploying Docker container..."
-                    sh """
-                    docker stop springboot-app-container || true
-                    docker rm springboot-app-container || true
-                    docker run -d -p 8080:8080 --name springboot-app-container springboot-app
-                    """
-                }
+                sh 'docker run -d -p 8080:8080 --name myapp-container myapp:latest'
             }
-        }
-    }
-    post {
-        always {
-            echo "Cleaning up workspace..."
-            cleanWs()
         }
     }
 
+    post {
+        always {
+            echo 'Pipeline finished'
+        }
+    }
 }
