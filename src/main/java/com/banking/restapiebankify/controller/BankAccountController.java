@@ -23,12 +23,11 @@ public class BankAccountController {
         this.bankAccountService = bankAccountService;
     }
 
-    // Utility to get the current username
     private String getCurrentUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    // Create a new bank account (User Only)
+
     @PostMapping("/create")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BankAccountDTO> createBankAccount(@RequestBody BankAccountDTO bankAccountDTO) {
@@ -38,7 +37,6 @@ public class BankAccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccountDTO);
     }
 
-    // Update an existing bank account (User Only)
     @PutMapping("/update/{accountId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<BankAccountDTO> updateBankAccount(@PathVariable Long accountId,
@@ -49,7 +47,6 @@ public class BankAccountController {
         return ResponseEntity.ok(updatedAccountDTO);
     }
 
-    // Delete a bank account (User Only)
     @DeleteMapping("/delete/{accountId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> deleteBankAccount(@PathVariable Long accountId) {
@@ -57,7 +54,6 @@ public class BankAccountController {
         return ResponseEntity.ok().build();
     }
 
-    // Retrieve a single bank account (User, Employee, or Admin)
     @GetMapping("/account/{accountId}")
     @PreAuthorize("hasAnyRole('USER', 'EMPLOYEE', 'ADMIN')")
     public ResponseEntity<BankAccountDTO> getBankAccount(@PathVariable Long accountId) {
@@ -76,7 +72,6 @@ public class BankAccountController {
         return ResponseEntity.ok(accountDTOs);
     }
 
-    // Retrieve all bank accounts (Admin or Employee Only)
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
@@ -87,7 +82,6 @@ public class BankAccountController {
         return ResponseEntity.ok(accountDTOs);
     }
 
-    // Block a user's bank account (Admin Only)
     @PatchMapping("/admin/block/{userId}/{accountId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BankAccountDTO> blockBankAccount(@PathVariable Long userId,
@@ -97,7 +91,6 @@ public class BankAccountController {
         return ResponseEntity.ok(accountDTO);
     }
 
-    // Activate a user's bank account (Admin Only)
     @PatchMapping("/admin/activate/{userId}/{accountId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BankAccountDTO> activateBankAccount(@PathVariable Long userId,
