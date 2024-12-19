@@ -24,6 +24,8 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    private long clockSkew = 0;
+
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
@@ -63,6 +65,7 @@ public class JwtTokenProvider {
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
+                .setAllowedClockSkewSeconds(clockSkew)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -70,5 +73,17 @@ public class JwtTokenProvider {
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    public void setJwtSecret(String jwtSecret) {
+        this.jwtSecret = jwtSecret;
+    }
+
+    public void setJwtExpiration(long jwtExpiration) {
+        this.jwtExpiration = jwtExpiration;
+    }
+
+    public void setClockSkew(long clockSkew) {
+        this.clockSkew = clockSkew;
     }
 }
