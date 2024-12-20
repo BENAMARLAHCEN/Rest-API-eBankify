@@ -5,8 +5,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Setter
 @Component
 public class JwtTokenProvider {
     @Value("${jwt.secret}")
@@ -75,15 +76,4 @@ public class JwtTokenProvider {
         return extractExpiration(token).before(new Date());
     }
 
-    public void setJwtSecret(String jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-
-    public void setJwtExpiration(long jwtExpiration) {
-        this.jwtExpiration = jwtExpiration;
-    }
-
-    public void setClockSkew(long clockSkew) {
-        this.clockSkew = clockSkew;
-    }
 }

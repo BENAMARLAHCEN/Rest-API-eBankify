@@ -2,7 +2,6 @@ package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.repository.RoleRepository;
-import com.banking.restapiebankify.service.RoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

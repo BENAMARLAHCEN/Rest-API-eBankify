@@ -9,7 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -47,9 +46,9 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<TransactionDTO>> getTransactionsForAccount(@PathVariable Long accountId) {
         List<Transaction> transactions = transactionService.getTransactionsForAccount(accountId, getCurrentUsername());
-        List<TransactionDTO> transactionDTOs = transactions.stream()
+        List<TransactionDTO> transactionDTOs = List.copyOf(transactions.stream()
                 .map(TransactionMapper.INSTANCE::toTransactionDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(transactionDTOs);
     }
 
@@ -57,9 +56,9 @@ public class TransactionController {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
         List<Transaction> transactions = transactionService.getAllTransactions();
-        List<TransactionDTO> transactionDTOs = transactions.stream()
+        List<TransactionDTO> transactionDTOs = List.copyOf(transactions.stream()
                 .map(TransactionMapper.INSTANCE::toTransactionDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(transactionDTOs);
     }
 

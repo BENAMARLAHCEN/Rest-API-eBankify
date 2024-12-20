@@ -9,7 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/loans")
@@ -46,9 +45,9 @@ public class LoanController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<LoanDTO>> getLoansForUser() {
         List<Loan> loans = loanService.getLoansByUser(getCurrentUserId());
-        List<LoanDTO> loanDTOs = loans.stream()
+        List<LoanDTO> loanDTOs = List.copyOf(loans.stream()
                 .map(LoanMapper.INSTANCE::toLoanDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(loanDTOs);
     }
 
@@ -56,9 +55,9 @@ public class LoanController {
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     public ResponseEntity<List<LoanDTO>> getAllLoans() {
         List<Loan> loans = loanService.getAllLoans();
-        List<LoanDTO> loanDTOs = loans.stream()
+        List<LoanDTO> loanDTOs = List.copyOf(loans.stream()
                 .map(LoanMapper.INSTANCE::toLoanDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(loanDTOs);
     }
 

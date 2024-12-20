@@ -9,7 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bills")
@@ -32,9 +31,9 @@ public class BillController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<BillDTO>> getBillsForUser() {
         List<Bill> bills = billService.getBillsByUser(getCurrentUserId());
-        List<BillDTO> billDTOs = bills.stream()
+        List<BillDTO> billDTOs = List.copyOf(bills.stream()
                 .map(BillMapper.INSTANCE::toBillDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(billDTOs);
     }
 

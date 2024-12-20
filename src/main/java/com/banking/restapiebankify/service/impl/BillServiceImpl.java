@@ -1,6 +1,7 @@
 package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.dto.BillDTO;
+import com.banking.restapiebankify.exception.UserNotFoundException;
 import com.banking.restapiebankify.mapper.BillMapper;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.model.Bill;
@@ -12,7 +13,6 @@ import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.BillService;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class BillServiceImpl implements BillService {
     public Bill createBill(BillDTO billDTO) {
         Bill bill = BillMapper.INSTANCE.toBill(billDTO);
         User user = userRepository.findById(billDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         bill.setUser(user);
         bill.setStatus(BillStatus.UNPAID);
         bill.setDueDate(LocalDateTime.now().plusMonths(1));

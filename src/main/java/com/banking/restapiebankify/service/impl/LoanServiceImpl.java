@@ -1,6 +1,7 @@
 package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.dto.LoanDTO;
+import com.banking.restapiebankify.exception.UserNotFoundException;
 import com.banking.restapiebankify.mapper.LoanMapper;
 import com.banking.restapiebankify.model.Loan;
 import com.banking.restapiebankify.model.User;
@@ -28,7 +29,7 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public Loan requestLoan(LoanDTO loanDTO, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
         if (user.getBirthday().plusYears(18).isAfter(LocalDate.now())) {
             throw new RuntimeException("User is not eligible for a loan: must be at least 18 years old");
         }

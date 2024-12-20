@@ -25,6 +25,8 @@ public class SecurityConfig {
     private final SecurityService securityService;
     private final JwtTokenFilter jwtTokenFilter;
 
+    private static final String ADMIN_ENDPOINT = "/admin/**";
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -39,12 +41,12 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain adminFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/admin/**")
+                .securityMatcher(ADMIN_ENDPOINT)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/admin/login").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(ADMIN_ENDPOINT).hasRole("ADMIN")
                 )
-                .httpBasic(Customizer -> {})
+                .httpBasic(customizer -> {})
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
@@ -60,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/register", "/api/login").permitAll()  // Open to all users
                         .requestMatchers("/user/**").hasRole("USER")
                         .requestMatchers("/employee/**").hasRole("EMPLOYEE")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(ADMIN_ENDPOINT).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())

@@ -11,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bankaccounts")
@@ -66,9 +65,9 @@ public class BankAccountController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<BankAccountDTO>> getBankAccountsForUser() {
         List<BankAccount> accounts = bankAccountService.getBankAccountsForUser(getCurrentUsername());
-        List<BankAccountDTO> accountDTOs = accounts.stream()
+        List<BankAccountDTO> accountDTOs = List.copyOf(accounts.stream()
                 .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(accountDTOs);
     }
 
@@ -76,9 +75,9 @@ public class BankAccountController {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
         List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
-        List<BankAccountDTO> accountDTOs = accounts.stream()
+        List<BankAccountDTO> accountDTOs = List.copyOf(accounts.stream()
                 .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
-                .collect(Collectors.toList());
+                .toList());
         return ResponseEntity.ok(accountDTOs);
     }
 

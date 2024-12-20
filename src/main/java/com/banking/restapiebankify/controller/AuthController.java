@@ -5,8 +5,6 @@ import com.banking.restapiebankify.dto.LoginRequest;
 import com.banking.restapiebankify.dto.UserDTO;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.AuthService;
-import com.banking.restapiebankify.service.UserService;
-import com.banking.restapiebankify.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,14 +32,13 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserDTO UserDTO) {
-        User user = authService.registerUser(UserDTO);
+    public ResponseEntity<User> registerUser(@RequestBody UserDTO userDTO) {
+        User user = authService.registerUser(userDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
-
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -60,21 +57,5 @@ public class AuthController {
         response.put("role", user.getRole().getName());
 
         return ResponseEntity.ok(response);
-
     }
-
-//    @PostMapping("/refresh")
-//    public ResponseEntity<String> refreshToken(@RequestHeader("Authorization") String token) {
-//
-//    }
-//
-//    @PostMapping("/logout")
-//    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
-//
-//    }
-//
-//    @PostMapping("/validate")
-//    public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
-//
-//    }
 }

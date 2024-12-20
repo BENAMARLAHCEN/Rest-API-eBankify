@@ -50,11 +50,11 @@ public class User implements UserDetails {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+    private transient Role role;
 
     @JsonBackReference
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<BankAccount> accounts;
+    private transient Set<BankAccount> accounts;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

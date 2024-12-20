@@ -3,6 +3,7 @@ package com.banking.restapiebankify.service.impl;
 import com.banking.restapiebankify.dto.TransactionDTO;
 import com.banking.restapiebankify.exception.BankAccountNotFoundException;
 import com.banking.restapiebankify.exception.TransactionNotFoundException;
+import com.banking.restapiebankify.exception.UnauthorizedTransactionException;
 import com.banking.restapiebankify.mapper.TransactionMapper;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.model.Transaction;
@@ -42,7 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .orElseThrow(() -> new BankAccountNotFoundException("To account not found"));
 
         if (!fromAccount.getUser().equals(user)) {
-            throw new RuntimeException("Unauthorized transaction");
+            throw new UnauthorizedTransactionException("Unauthorized transaction");
         }
         if (fromAccount.getBalance().compareTo(transactionDTO.getAmount()) < 0) {
             throw new RuntimeException("Insufficient balance");

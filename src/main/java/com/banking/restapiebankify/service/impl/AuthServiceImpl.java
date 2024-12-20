@@ -1,15 +1,13 @@
 package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.dto.UserDTO;
+import com.banking.restapiebankify.exception.UserAlreadyExistsException;
 import com.banking.restapiebankify.mapper.UserMapper;
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.repository.RoleRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.AuthService;
-import com.banking.restapiebankify.service.RoleService;
-import com.banking.restapiebankify.util.JwtUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +17,6 @@ import java.util.Optional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -41,10 +38,10 @@ public class AuthServiceImpl implements AuthService {
         User user = UserMapper.INSTANCE.toUser(userDTO);
 
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new UserAlreadyExistsException("Username already exists");
         }
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new UserAlreadyExistsException("Email already exists");
         }
 
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));  // Use injected encoder
@@ -57,5 +54,4 @@ public class AuthServiceImpl implements AuthService {
 
         return userRepository.save(user);
     }
-
 }

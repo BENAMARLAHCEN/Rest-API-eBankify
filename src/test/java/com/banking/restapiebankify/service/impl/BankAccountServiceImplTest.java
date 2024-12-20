@@ -1,6 +1,5 @@
 package com.banking.restapiebankify.service.impl;
 
-import com.banking.restapiebankify.exception.BankAccountNotFoundException;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;

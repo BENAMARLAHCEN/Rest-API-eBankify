@@ -1,10 +1,8 @@
 package com.banking.restapiebankify.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import jakarta.persistence.*;
-import java.util.Set;
 
 @Entity
 @Table(name = "roles")

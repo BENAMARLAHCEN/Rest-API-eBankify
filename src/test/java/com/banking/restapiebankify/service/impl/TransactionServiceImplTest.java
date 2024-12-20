@@ -1,9 +1,6 @@
 package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.dto.TransactionDTO;
-import com.banking.restapiebankify.exception.BankAccountNotFoundException;
-import com.banking.restapiebankify.exception.TransactionNotFoundException;
-import com.banking.restapiebankify.mapper.TransactionMapper;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.model.Transaction;
 import com.banking.restapiebankify.model.User;
@@ -18,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 

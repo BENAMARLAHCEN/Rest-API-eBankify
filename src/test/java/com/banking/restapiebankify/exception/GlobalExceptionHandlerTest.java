@@ -2,7 +2,6 @@ package com.banking.restapiebankify.exception;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -26,7 +25,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<?> response = exceptionHandler.handleException(exception);
 
         assertNotNull(response);
-        assertEquals(500, response.getStatusCodeValue());
+        assertEquals(500, response.getStatusCode().value());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
         assertEquals("Generic error occurred", ((Map<?, ?>) response.getBody()).get("error"));
     }
@@ -38,7 +37,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<?> response = exceptionHandler.handleBadCredentials(exception);
 
         assertNotNull(response);
-        assertEquals(401, response.getStatusCodeValue());
+        assertEquals(401, response.getStatusCode().value());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
         assertEquals("Invalid credentials", ((Map<?, ?>) response.getBody()).get("error"));
     }
@@ -50,7 +49,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<?> response = exceptionHandler.handleIllegalArgumentException(exception);
 
         assertNotNull(response);
-        assertEquals(400, response.getStatusCodeValue());
+        assertEquals(400, response.getStatusCode().value());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
         assertEquals("Invalid argument", ((Map<?, ?>) response.getBody()).get("error"));
     }
@@ -62,7 +61,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<?> response = exceptionHandler.handleBankAccountNotFoundException(exception);
 
         assertNotNull(response);
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(404, response.getStatusCode().value());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
         assertEquals("Bank account not found", ((Map<?, ?>) response.getBody()).get("error"));
     }
@@ -74,7 +73,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<?> response = exceptionHandler.handleTransactionNotFoundException(exception);
 
         assertNotNull(response);
-        assertEquals(404, response.getStatusCodeValue());
+        assertEquals(404, response.getStatusCode().value());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
         assertEquals("Transaction not found", ((Map<?, ?>) response.getBody()).get("error"));
     }
@@ -86,7 +85,7 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<?> response = exceptionHandler.handleUnauthorizedAccessException(exception);
 
         assertNotNull(response);
-        assertEquals(403, response.getStatusCodeValue());
+        assertEquals(403, response.getStatusCode().value());
         assertTrue(((Map<?, ?>) response.getBody()).containsKey("error"));
         assertEquals("Access denied", ((Map<?, ?>) response.getBody()).get("error"));
     }

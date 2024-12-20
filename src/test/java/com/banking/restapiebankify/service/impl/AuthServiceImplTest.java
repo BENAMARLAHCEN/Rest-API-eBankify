@@ -1,7 +1,6 @@
 package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.dto.UserDTO;
-import com.banking.restapiebankify.mapper.UserMapper;
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.repository.RoleRepository;

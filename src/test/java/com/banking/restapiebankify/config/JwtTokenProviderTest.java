@@ -2,16 +2,12 @@ package com.banking.restapiebankify.config;
 
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.security.Key;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,7 +22,7 @@ class JwtTokenProviderTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         jwtTokenProvider = new JwtTokenProvider();
         jwtTokenProvider.setJwtSecret("01234567890123456789012345678901"); // 32 bytes key for HMAC
         jwtTokenProvider.setJwtExpiration(3600000); // 1 hour in milliseconds
