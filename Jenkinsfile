@@ -1,10 +1,8 @@
 pipeline {
     agent any
-
     environment {
-        PATH = "/usr/bin:/usr/local/bin:${env.PATH}"
+        SONAR_TOKEN = "sqa_d9c07f15818cd84a813dc457ff68127423774c67"
     }
-
     stages {
         stage('Checkout') {
             steps {
