@@ -44,11 +44,17 @@ pipeline {
             }
         }
 
-
-        stage('Manual Approval') {
+        stage('Quality Gate') {
             steps {
                 script {
-                    input message: "Approve deployment?", submitter: "admin"
+                    timeout(time: 5, unit: 'MINUTES') {
+                        withSonarQubeEnv('SonarQubeDevops') {
+                            def qg = waitForQualityGate()
+                            if (qg.status != 'OK') {
+                                error "Quality Gate failed: ${qg.status}"
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -56,6 +62,13 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t myapp:latest .'
+            }
+        }
+
+        stage('Stop and Remove Container') {
+            steps {
+                sh 'docker stop myapp-container || true'
+                sh 'docker rm myapp-container || true'
             }
         }
 
