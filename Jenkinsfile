@@ -44,16 +44,22 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
+        stage('Quality Gate Check') {
             steps {
                 script {
-                    timeout(time: 5, unit: 'MINUTES') {
-                        withSonarQubeEnv('SonarQubeDevops') {
-                            def qg = waitForQualityGate()
-                            if (qg.status != 'OK') {
-                                error "Quality Gate failed: ${qg.status}"
-                            }
-                        }
+                    echo "Checking SonarQube Quality Gate..."
+                    def qualityGate = sh(
+                        script: """
+                        curl -s -u "${SONAR_TOKEN}:" \
+                        "http://host.docker.internal:9000/api/qualitygates/project_status?projectKey=com.banking:restapiebankify" \
+                        | jq -r '.projectStatus.status'
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    if (qualityGate != "OK") {
+                        error "Quality Gate failed! Stopping the build."
+                    } else {
+                        echo "Quality Gate passed! Proceeding..."
                     }
                 }
             }

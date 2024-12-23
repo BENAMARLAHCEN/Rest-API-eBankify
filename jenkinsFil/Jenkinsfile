@@ -10,7 +10,7 @@ pipeline {
         GIT_REPOSITORY = "https://github.com/BENAMARLAHCEN/Rest-API-eBankify.git"
         SONAR_PROJECT_KEY = "com.banking:restapiebankify"
         SONAR_HOST_URL = "http://host.docker.internal:9000"
-        SONAR_TOKEN = "sqa_abbf615e55c0ed4589e69e739114cee763a5ad5a"
+        SONAR_TOKEN = "sqa_d9c07f15818cd84a813dc457ff68127423774c67"
         DOCKER_IMAGE_NAME = "springboot-app"
         RECIPIENT_EMAIL = "lahcen.ben3@gmail.com"
         POSTGRES_CONTAINER_NAME = "rest-api-ebankify-db-1"
@@ -78,17 +78,29 @@ pipeline {
             }
         }
 
+
+        stage('Verify Java Version') {
+            steps {
+                script {
+                    echo "Verifying Java version..."
+                    sh 'java -version'
+                }
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 echo "Running SonarQube analysis..."
                 sh """
+                export JAVA_HOME="C:/Program Files/Java/jdk-17"
                 sonar-scanner \
                   -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                   -Dsonar.sources=src \
-                  -Dsonar.java.binaries=target/classes \
+                  -Dsonar.java.binaries=target \
                   -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
                   -Dsonar.host.url=${SONAR_HOST_URL} \
-                  -Dsonar.login=${SONAR_TOKEN}
+                  -Dsonar.login=${SONAR_TOKEN} \
+                  -X
                 """
             }
         }
@@ -114,11 +126,13 @@ pipeline {
             }
         }
 
+
+
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image..."
                 sh '''
-                JAR_FILE=$(ls target/version2_XpresBank-*.jar | head -n 1)
+                JAR_FILE=$(ls target/restapiebankify-*.jar | head -n 1)
                 if [ -z "$JAR_FILE" ]; then
                   echo "JAR file not found in target directory! Exiting..."
                   exit 1
@@ -131,27 +145,24 @@ pipeline {
         stage('Deploy Docker Container') {
             steps {
                 echo "Deploying Docker container..."
-                sh """
+                sh '''
                 docker stop ${DOCKER_IMAGE_NAME}-container || true
                 docker rm ${DOCKER_IMAGE_NAME}-container || true
                 docker run -d -p 8080:8181 --name ${DOCKER_IMAGE_NAME}-container ${DOCKER_IMAGE_NAME}
-                """
+                '''
             }
         }
     }
 
+
     post {
         success {
             echo "Build succeeded! Sending success notifications..."
-            mail to: "${RECIPIENT_EMAIL}",
-                 subject: "✅ SUCCESS: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}",
-                 body: "The build and deployment were successful.\n\nDetails: ${env.BUILD_URL}"
+
         }
         failure {
             echo "Build failed! Sending failure notifications..."
-            mail to: "${RECIPIENT_EMAIL}",
-                 subject: "❌ FAILURE: Build #${env.BUILD_NUMBER} - ${env.JOB_NAME}",
-                 body: "The build or deployment failed.\n\nDetails: ${env.BUILD_URL}"
+
         }
     }
 }
