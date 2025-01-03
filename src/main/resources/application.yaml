@@ -29,3 +29,6 @@ jwt:
   expiration: 3600000
 
 debug: true
+
+sonar:
+  login: ${SONAR_PASSWORD}

@@ -1,0 +1,12 @@
+
+services:
+  jenkins:
+      image: jenkins/jenkins:lts
+      container_name: devops-jenkins-container-lts-2.289.1
+      user: root
+      ports:
+        - "8089:8089"
+        - "50000:50000"
+      volumes:
+        - jenkins_home:/var/jenkins_home
+        - /var/run/docker.sock:/var/run/docker.sock

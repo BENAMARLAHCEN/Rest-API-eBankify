@@ -8,8 +8,6 @@ import com.banking.restapiebankify.dto.UserResponse;
 import com.banking.restapiebankify.mapper.UserMapper;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.AuthService;
-import com.banking.restapiebankify.service.UserService;
-import com.banking.restapiebankify.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +17,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
