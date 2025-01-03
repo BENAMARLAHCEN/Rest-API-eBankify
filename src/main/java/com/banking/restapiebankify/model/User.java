@@ -83,4 +83,17 @@ public class User implements UserDetails {
         return enabled;
     }
 
+    public String ToString() {
+        return "{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", birthday=" + birthday +
+                ", monthlyIncome=" + monthlyIncome +
+                ", collateralAvailable='" + collateralAvailable + '\'' +
+                ", customerSince=" + customerSince +
+                ", role=" + role.getName() +
+                '}';
+    }
+
 }

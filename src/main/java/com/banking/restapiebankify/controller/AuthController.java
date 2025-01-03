@@ -1,8 +1,11 @@
 package com.banking.restapiebankify.controller;
 
 import com.banking.restapiebankify.config.JwtTokenProvider;
+import com.banking.restapiebankify.dto.AuthResponse;
 import com.banking.restapiebankify.dto.LoginRequest;
 import com.banking.restapiebankify.dto.UserDTO;
+import com.banking.restapiebankify.dto.UserResponse;
+import com.banking.restapiebankify.mapper.UserMapper;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.service.AuthService;
 import com.banking.restapiebankify.service.UserService;
@@ -53,13 +56,11 @@ public class AuthController {
 
         User user = authService.findUserByUsername(loginRequest.getUsername());
         String jwt = jwtTokenProvider.generateToken(user);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("token", jwt);
-        response.put("userId", user.getId().toString());
-        response.put("role", user.getRole().getName());
-
-        return ResponseEntity.ok(response);
+        UserResponse userResponse = UserMapper.INSTANCE.toUserResponse(user);
+        AuthResponse authResponse = new AuthResponse(jwt, refreshToken, userResponse);
+        return ResponseEntity.ok(authResponse);
 
     }
 
