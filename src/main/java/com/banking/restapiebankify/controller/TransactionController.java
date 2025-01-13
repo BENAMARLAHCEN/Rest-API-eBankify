@@ -4,6 +4,10 @@ import com.banking.restapiebankify.dto.TransactionDTO;
 import com.banking.restapiebankify.mapper.TransactionMapper;
 import com.banking.restapiebankify.model.Transaction;
 import com.banking.restapiebankify.service.TransactionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -45,21 +49,34 @@ public class TransactionController {
 
     @GetMapping("/account/{accountId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'EMPLOYEE')")
-    public ResponseEntity<List<TransactionDTO>> getTransactionsForAccount(@PathVariable Long accountId) {
-        List<Transaction> transactions = transactionService.getTransactionsForAccount(accountId, getCurrentUsername());
-        List<TransactionDTO> transactionDTOs = transactions.stream()
-                .map(TransactionMapper.INSTANCE::toTransactionDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<TransactionDTO>> getTransactionsForAccount(
+            @PathVariable Long accountId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "timestamp") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<Transaction> transactions = transactionService.getTransactionsForAccount(accountId, getCurrentUsername(), pageable);
+        Page<TransactionDTO> transactionDTOs = transactions.map(TransactionMapper.INSTANCE::toTransactionDTO);
         return ResponseEntity.ok(transactionDTOs);
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
-        List<Transaction> transactions = transactionService.getAllTransactions();
-        List<TransactionDTO> transactionDTOs = transactions.stream()
-                .map(TransactionMapper.INSTANCE::toTransactionDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<TransactionDTO>> getAllTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "timestamp") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<Transaction> transactions = transactionService.getAllTransactions(pageable);
+        Page<TransactionDTO> transactionDTOs = transactions.map(TransactionMapper.INSTANCE::toTransactionDTO);
         return ResponseEntity.ok(transactionDTOs);
     }
 

@@ -33,7 +33,7 @@ public class Transaction {
     private TransactionStatus status;
 
     @ManyToOne
-    @JoinColumn(name = "from_account_id")
+    @JoinColumn(name = "from_account_id", nullable = true, updatable = false)
     private BankAccount fromAccount;
 
     @ManyToOne
