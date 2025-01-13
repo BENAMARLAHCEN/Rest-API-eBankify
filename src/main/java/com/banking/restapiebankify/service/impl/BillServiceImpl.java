@@ -10,11 +10,12 @@ import com.banking.restapiebankify.repository.BankAccountRepository;
 import com.banking.restapiebankify.repository.BillRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.BillService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class BillServiceImpl implements BillService {
@@ -41,20 +42,24 @@ public class BillServiceImpl implements BillService {
     }
 
     @Override
-    public List<Bill> getBillsByUser(Long userId) {
-        return billRepository.findByUserId(userId);
+    public Page<Bill> getBillsByUser(String username, Pageable pageable) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return billRepository.findByUserId(user.getId(), pageable);
     }
 
     @Override
-    public Bill payBill(Long billId, Long userId, String accountNumber) {
+    public Bill payBill(Long billId, String username, String accountNumber) {
         Bill bill = billRepository.findById(billId)
                 .orElseThrow(() -> new RuntimeException("Bill not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
         BankAccount bankAccount = bankAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new RuntimeException("Bank account not found"));
-        if (!bill.getUser().getId().equals(userId)) {
+        if (!bill.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Unauthorized access to this bill");
         }
-        if (!bankAccount.getUser().getId().equals(userId)) {
+        if (!bankAccount.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Unauthorized access to this bank account");
         }
         if (bill.getStatus().equals(BillStatus.PAID)) {
@@ -67,5 +72,10 @@ public class BillServiceImpl implements BillService {
         bill.setStatus(BillStatus.PAID);
         bankAccountRepository.save(bankAccount);
         return billRepository.save(bill);
+    }
+
+    @Override
+    public Page<Bill> getAllBills(Pageable pageable) {
+        return billRepository.findAll(pageable);
     }
 }
