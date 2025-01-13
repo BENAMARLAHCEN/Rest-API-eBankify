@@ -13,4 +13,6 @@ public interface TransactionService {
     Transaction rejectTransaction(Long transactionId, String username, String remarks);
     Page<Transaction> getTransactionsForAccount(Long accountId, String username, Pageable pageable);
     Page<Transaction> getAllTransactions(Pageable pageable);
+
+    Page<Transaction> getTransactionsForUser(String currentUsername, Pageable pageable);
 }

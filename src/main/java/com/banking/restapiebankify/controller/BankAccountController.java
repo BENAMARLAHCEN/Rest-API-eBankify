@@ -104,11 +104,11 @@ public class BankAccountController {
     }
 
     // Block a user's bank account (Admin Only)
-    @PatchMapping("/admin/block/{userId}/{accountId}")
+    @PatchMapping("/admin/block/{accountId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BankAccountDTO> blockBankAccount(@PathVariable Long userId,
+    public ResponseEntity<BankAccountDTO> blockBankAccount(
                                                            @PathVariable Long accountId) {
-        BankAccount blockedAccount = bankAccountService.blockOrActivateAccount(accountId, userId, false);
+        BankAccount blockedAccount = bankAccountService.blockOrActivateAccount(accountId, false);
         BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(blockedAccount);
         return ResponseEntity.ok(accountDTO);
     }
@@ -116,9 +116,9 @@ public class BankAccountController {
     // Activate a user's bank account (Admin Only)
     @PatchMapping("/admin/activate/{userId}/{accountId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BankAccountDTO> activateBankAccount(@PathVariable Long userId,
+    public ResponseEntity<BankAccountDTO> activateBankAccount(
                                                               @PathVariable Long accountId) {
-        BankAccount activatedAccount = bankAccountService.blockOrActivateAccount(accountId, userId, true);
+        BankAccount activatedAccount = bankAccountService.blockOrActivateAccount(accountId, true);
         BankAccountDTO accountDTO = BankAccountMapper.INSTANCE.toBankAccountDTO(activatedAccount);
         return ResponseEntity.ok(accountDTO);
     }

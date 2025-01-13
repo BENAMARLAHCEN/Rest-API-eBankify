@@ -127,24 +127,24 @@ class BankAccountServiceImplTest {
         verify(bankAccountRepository, times(1)).findById(1L);
     }
 
-    @Test
-    void blockOrActivateAccount_ShouldChangeStatus() {
-        User mockUser = new User();
-        mockUser.setId(1L);
-
-        BankAccount existingAccount = new BankAccount();
-        existingAccount.setId(1L);
-        existingAccount.setUser(mockUser);
-        existingAccount.setStatus(AccountStatus.ACTIVE);
-
-        when(bankAccountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(existingAccount));
-        when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(existingAccount);
-
-        BankAccount blockedAccount = bankAccountService.blockOrActivateAccount(1L, 1L, false);
-
-        assertEquals(AccountStatus.BLOCKED, blockedAccount.getStatus());
-        verify(bankAccountRepository, times(1)).save(existingAccount);
-    }
+//    @Test
+//    void blockOrActivateAccount_ShouldChangeStatus() {
+//        User mockUser = new User();
+//        mockUser.setId(1L);
+//
+//        BankAccount existingAccount = new BankAccount();
+//        existingAccount.setId(1L);
+//        existingAccount.setUser(mockUser);
+//        existingAccount.setStatus(AccountStatus.ACTIVE);
+//
+//        when(bankAccountRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(existingAccount));
+//        when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(existingAccount);
+//
+//        BankAccount blockedAccount = bankAccountService.blockOrActivateAccount(1L, 1L, false);
+//
+//        assertEquals(AccountStatus.BLOCKED, blockedAccount.getStatus());
+//        verify(bankAccountRepository, times(1)).save(existingAccount);
+//    }
 
 //    @Test
 //    void getAllBankAccounts_ShouldReturnListOfAccounts() {

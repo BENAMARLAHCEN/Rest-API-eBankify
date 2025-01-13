@@ -79,8 +79,8 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccount blockOrActivateAccount(Long accountId, Long userId, boolean activate) {
-        BankAccount account = bankAccountRepository.findByIdAndUserId(accountId, userId)
+    public BankAccount blockOrActivateAccount(Long accountId, boolean activate) {
+        BankAccount account = bankAccountRepository.findById(accountId)
                 .orElseThrow(() -> new BankAccountNotFoundException("Account not found for the specified user."));
         account.setStatus(activate ? AccountStatus.ACTIVE : AccountStatus.BLOCKED);
         return bankAccountRepository.save(account);

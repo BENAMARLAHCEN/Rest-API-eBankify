@@ -80,6 +80,23 @@ public class TransactionController {
         return ResponseEntity.ok(transactionDTOs);
     }
 
+    // get all my transaction by user
+    @GetMapping("/myTransaction")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Page<TransactionDTO>> getTransactionsForUser(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "timestamp") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<Transaction> transactions = transactionService.getTransactionsForUser(getCurrentUsername(), pageable);
+        Page<TransactionDTO> transactionDTOs = transactions.map(TransactionMapper.INSTANCE::toTransactionDTO);
+        return ResponseEntity.ok(transactionDTOs);
+    }
+
     private String getCurrentUsername() {
         return org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
     }
