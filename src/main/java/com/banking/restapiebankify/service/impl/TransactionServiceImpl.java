@@ -101,4 +101,11 @@ public class TransactionServiceImpl implements TransactionService {
     public Page<Transaction> getAllTransactions(Pageable pageable) {
         return transactionRepository.findAll(pageable);
     }
+
+    @Override
+    public Page<Transaction> getTransactionsForUser(String currentUsername, Pageable pageable){
+        User user = userService.findUserByUsername(currentUsername);
+        List<BankAccount> bankAccounts = bankAccountRepository.findByUser(user);
+        return transactionRepository.findByFromAccountInOrToAccountIn(bankAccounts, bankAccounts, pageable);
+    }
 }

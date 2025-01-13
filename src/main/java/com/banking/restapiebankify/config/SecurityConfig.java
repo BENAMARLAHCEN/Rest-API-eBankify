@@ -62,6 +62,8 @@ public class SecurityConfig {
                                 "api/auth/refresh-token",
                                 "api/auth/verify",
                                 "api/auth/me",
+                                "api/loans/approve/**",
+                                "api/loans/reject/**",
                                 "api/bankaccounts/account/**",
                                 "api/bankaccounts/all",
                                 "api/bankaccounts/myAccounts",
@@ -80,13 +82,18 @@ public class SecurityConfig {
                                 "api/transactions/approve/**",
                                 "api/transactions/reject/**",
                                 "api/transactions/create",
+                                "api/transactions/myTransaction",
                                 "api/loans/request",
-                                "api/loans/approve/**",
-                                "api/loans/reject/**",
                                 "api/loans/user",
-                                "api/loans/all"
+                                "api/loans/all",
+                                "api/dashboard/admin/alerts/**",
+                                "api/dashboard/admin/alerts",
+                                "api/dashboard/user/**",
+                                "api/dashboard/user",
+                                "api/dashboard/admin/stats",
+                                "api/users/**",
+                                "api/users/**/change-password"
                         ).permitAll()
-                        .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

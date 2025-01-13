@@ -12,6 +12,6 @@ public interface BankAccountService {
     void deleteBankAccount(Long accountId, String username);
     BankAccount getBankAccountForUserOrAdmin(Long accountId, String username);
     Page<BankAccount> getAllBankAccounts(Pageable pageable);
-    BankAccount blockOrActivateAccount(Long accountId, Long userId, boolean activate);
+    BankAccount blockOrActivateAccount(Long accountId, boolean activate);
     Page<BankAccount> getBankAccountsForUser(String currentUsername, Pageable pageable);
 }

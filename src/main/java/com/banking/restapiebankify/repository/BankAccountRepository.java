@@ -1,6 +1,7 @@
 package com.banking.restapiebankify.repository;
 
 import com.banking.restapiebankify.model.BankAccount;
+import com.banking.restapiebankify.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,5 @@ public interface BankAccountRepository extends JpaRepository<BankAccount, Long> 
     Optional<BankAccount> findByAccountNumber(String accountNumber);
     Page<BankAccount> findByUserId(Long id, Pageable pageable);
     Page<BankAccount> findAll(Pageable pageable);
+    List<BankAccount> findByUser(User user);
 }
