@@ -17,9 +17,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -33,8 +35,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserDTO UserDTO) {
-        User user = authService.registerUser(UserDTO);
+    public ResponseEntity<UserResponse> registerUser(@RequestBody UserDTO UserDTO) {
+        UserResponse user = authService.registerUser(UserDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
 
     }
@@ -60,18 +62,40 @@ public class AuthController {
 
     }
 
-//    @PostMapping("/refresh")
-//    public ResponseEntity<String> refreshToken(@RequestHeader("Authorization") String token) {
-//
-//    }
-//
-//    @PostMapping("/logout")
-//    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
-//
-//    }
-//
-//    @PostMapping("/validate")
-//    public ResponseEntity<String> validateToken(@RequestHeader("Authorization") String token) {
-//
-//    }
+    @GetMapping("/verify")
+    public ResponseEntity<UserResponse> verifyToken(@RequestHeader("Authorization") String token) {
+            token = token.substring(7);
+        if (jwtTokenProvider.validateToken(token)) {
+            String username = jwtTokenProvider.extractUsername(token);
+            User user = authService.findUserByUsername(username);
+            UserResponse userResponse = UserMapper.INSTANCE.toUserResponse(user);
+            return ResponseEntity.ok(userResponse);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        if (jwtTokenProvider.validateToken(refreshToken)) {
+            String username = jwtTokenProvider.extractUsername(refreshToken);
+            User user = authService.findUserByUsername(username);
+            String jwt = jwtTokenProvider.generateToken(user);
+            String newRefreshToken = jwtTokenProvider.generateRefreshToken(user);
+            UserResponse userResponse = UserMapper.INSTANCE.toUserResponse(user);
+            AuthResponse authResponse = new AuthResponse(jwt, newRefreshToken, userResponse);
+            return ResponseEntity.ok(authResponse);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = authService.findUserByUsername(username);
+        UserResponse userResponse = UserMapper.INSTANCE.toUserResponse(user);
+        return ResponseEntity.ok(userResponse);
+    }
+
 }
