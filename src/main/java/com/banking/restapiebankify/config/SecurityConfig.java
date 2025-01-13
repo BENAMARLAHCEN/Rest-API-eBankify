@@ -90,7 +90,9 @@ public class SecurityConfig {
                                 "api/dashboard/admin/alerts",
                                 "api/dashboard/user/**",
                                 "api/dashboard/user",
-                                "api/dashboard/admin/stats"
+                                "api/dashboard/admin/stats",
+                                "api/users/**",
+                                "api/users/**/change-password"
                         ).permitAll()
                 )
                 .csrf(csrf -> csrf.disable())
