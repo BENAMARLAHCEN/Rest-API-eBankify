@@ -2,13 +2,13 @@ package com.banking.restapiebankify.service;
 
 import com.banking.restapiebankify.dto.LoanDTO;
 import com.banking.restapiebankify.model.Loan;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface LoanService {
-    Loan requestLoan(LoanDTO loanDTO, Long userId);
-    Loan approveLoan(Long loanId, Long employeeId);
-    Loan rejectLoan(Long loanId, Long employeeId, String remarks);
-    List<Loan> getLoansByUser(Long userId);
-    List<Loan> getAllLoans();
+    Loan requestLoan(LoanDTO loanDTO, String username);
+    Loan approveLoan(Long loanId, String employeeUsername);
+    Loan rejectLoan(Long loanId, String employeeUsername, String remarks);
+    Page<Loan> getLoansByUser(String username, Pageable pageable);
+    Page<Loan> getAllLoans(Pageable pageable);
 }

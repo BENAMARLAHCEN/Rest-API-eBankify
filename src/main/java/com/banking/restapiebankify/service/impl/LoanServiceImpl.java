@@ -8,11 +8,12 @@ import com.banking.restapiebankify.model.enums.LoanStatus;
 import com.banking.restapiebankify.repository.LoanRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.LoanService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 public class LoanServiceImpl implements LoanService {
@@ -26,8 +27,8 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Loan requestLoan(LoanDTO loanDTO, Long userId) {
-        User user = userRepository.findById(userId)
+    public Loan requestLoan(LoanDTO loanDTO, String username) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (user.getBirthday().plusYears(18).isAfter(LocalDate.now())) {
             throw new RuntimeException("User is not eligible for a loan: must be at least 18 years old");
@@ -43,7 +44,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Loan approveLoan(Long loanId, Long employeeId) {
+    public Loan approveLoan(Long loanId, String employeeUsername) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new RuntimeException("Loan not found"));
         loan.setStatus(LoanStatus.APPROVED);
@@ -51,7 +52,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Loan rejectLoan(Long loanId, Long employeeId, String remarks) {
+    public Loan rejectLoan(Long loanId, String employeeUsername, String remarks) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new RuntimeException("Loan not found"));
         loan.setStatus(LoanStatus.REJECTED);
@@ -59,12 +60,14 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public List<Loan> getLoansByUser(Long userId) {
-        return loanRepository.findByUserId(userId);
+    public Page<Loan> getLoansByUser(String username, Pageable pageable) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return loanRepository.findByUserId(user.getId(), pageable);
     }
 
     @Override
-    public List<Loan> getAllLoans() {
-        return loanRepository.findAll();
+    public Page<Loan> getAllLoans(Pageable pageable) {
+        return loanRepository.findAll(pageable);
     }
 }
