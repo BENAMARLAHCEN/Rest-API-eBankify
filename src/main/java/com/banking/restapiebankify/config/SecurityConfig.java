@@ -85,7 +85,12 @@ public class SecurityConfig {
                                 "api/transactions/myTransaction",
                                 "api/loans/request",
                                 "api/loans/user",
-                                "api/loans/all"
+                                "api/loans/all",
+                                "api/dashboard/admin/alerts/**",
+                                "api/dashboard/admin/alerts",
+                                "api/dashboard/user/**",
+                                "api/dashboard/user",
+                                "api/dashboard/admin/stats"
                         ).permitAll()
                 )
                 .csrf(csrf -> csrf.disable())
