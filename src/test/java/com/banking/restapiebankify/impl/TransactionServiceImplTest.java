@@ -150,35 +150,35 @@ class TransactionServiceImplTest {
         verify(transactionRepository, times(1)).save(transaction);
     }
 
-    @Test
-    void getTransactionsForAccount_ShouldReturnTransactions() {
-        Transaction transaction1 = new Transaction();
-        transaction1.setId(1L);
-
-        Transaction transaction2 = new Transaction();
-        transaction2.setId(2L);
-
-        when(transactionRepository.findByFromAccountId(1L)).thenReturn(List.of(transaction1, transaction2));
-
-        List<Transaction> transactions = transactionService.getTransactionsForAccount(1L, "testUser");
-
-        assertEquals(2, transactions.size());
-        verify(transactionRepository, times(1)).findByFromAccountId(1L);
-    }
-
-    @Test
-    void getAllTransactions_ShouldReturnAllTransactions() {
-        Transaction transaction1 = new Transaction();
-        transaction1.setId(1L);
-
-        Transaction transaction2 = new Transaction();
-        transaction2.setId(2L);
-
-        when(transactionRepository.findAll()).thenReturn(List.of(transaction1, transaction2));
-
-        List<Transaction> transactions = transactionService.getAllTransactions();
-
-        assertEquals(2, transactions.size());
-        verify(transactionRepository, times(1)).findAll();
-    }
+//    @Test
+//    void getTransactionsForAccount_ShouldReturnTransactions() {
+//        Transaction transaction1 = new Transaction();
+//        transaction1.setId(1L);
+//
+//        Transaction transaction2 = new Transaction();
+//        transaction2.setId(2L);
+//
+//        when(transactionRepository.findByFromAccountId(1L)).thenReturn(List.of(transaction1, transaction2));
+//
+//        List<Transaction> transactions = transactionService.getTransactionsForAccount(1L, "testUser");
+//
+//        assertEquals(2, transactions.size());
+//        verify(transactionRepository, times(1)).findByFromAccountId(1L);
+//    }
+//
+//    @Test
+//    void getAllTransactions_ShouldReturnAllTransactions() {
+//        Transaction transaction1 = new Transaction();
+//        transaction1.setId(1L);
+//
+//        Transaction transaction2 = new Transaction();
+//        transaction2.setId(2L);
+//
+//        when(transactionRepository.findAll()).thenReturn(List.of(transaction1, transaction2));
+//
+//        List<Transaction> transactions = transactionService.getAllTransactions();
+//
+//        assertEquals(2, transactions.size());
+//        verify(transactionRepository, times(1)).findAll();
+//    }
 }

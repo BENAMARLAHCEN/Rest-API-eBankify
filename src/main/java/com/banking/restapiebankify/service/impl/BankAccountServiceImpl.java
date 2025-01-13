@@ -8,6 +8,8 @@ import com.banking.restapiebankify.repository.BankAccountRepository;
 import com.banking.restapiebankify.repository.UserRepository;
 import com.banking.restapiebankify.service.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -65,8 +67,15 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<BankAccount> getAllBankAccounts() {
-        return bankAccountRepository.findAll();
+    public Page<BankAccount> getAllBankAccounts(Pageable pageable) {
+        return bankAccountRepository.findAll(pageable);
+    }
+
+    @Override
+    public Page<BankAccount> getBankAccountsForUser(String currentUsername, Pageable pageable) {
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+        return bankAccountRepository.findByUserId(user.getId(), pageable);
     }
 
     @Override
@@ -77,10 +86,5 @@ public class BankAccountServiceImpl implements BankAccountService {
         return bankAccountRepository.save(account);
     }
 
-    @Override
-    public List<BankAccount> getBankAccountsForUser(String currentUsername) {
-        User user = userRepository.findByUsername(currentUsername)
-                .orElseThrow(() -> new RuntimeException("User not found."));
-        return bankAccountRepository.findByUserId(user.getId());
-    }
+
 }

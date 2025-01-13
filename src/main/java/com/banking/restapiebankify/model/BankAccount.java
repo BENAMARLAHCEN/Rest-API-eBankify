@@ -1,6 +1,7 @@
 package com.banking.restapiebankify.model;
 
 import com.banking.restapiebankify.model.enums.AccountStatus;
+import com.banking.restapiebankify.model.enums.AccountType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
@@ -34,4 +35,8 @@ public class BankAccount {
 
     @Enumerated(EnumType.STRING)
     private AccountStatus status; // ACTIVE or BLOCKED
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(255) default 'SAVINGS'")
+    private AccountType type; // SAVINGS or CHECKING
 }

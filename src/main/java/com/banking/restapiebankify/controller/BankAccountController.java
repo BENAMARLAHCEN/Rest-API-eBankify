@@ -4,6 +4,10 @@ import com.banking.restapiebankify.dto.BankAccountDTO;
 import com.banking.restapiebankify.mapper.BankAccountMapper;
 import com.banking.restapiebankify.model.BankAccount;
 import com.banking.restapiebankify.service.BankAccountService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -68,22 +72,34 @@ public class BankAccountController {
 
     @GetMapping("/myAccounts")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<List<BankAccountDTO>> getBankAccountsForUser() {
-        List<BankAccount> accounts = bankAccountService.getBankAccountsForUser(getCurrentUsername());
-        List<BankAccountDTO> accountDTOs = accounts.stream()
-                .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<BankAccountDTO>> getBankAccountsForUser(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "accountNumber") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<BankAccount> accounts = bankAccountService.getBankAccountsForUser(getCurrentUsername(), pageable);
+        Page<BankAccountDTO> accountDTOs = accounts.map(BankAccountMapper.INSTANCE::toBankAccountDTO);
         return ResponseEntity.ok(accountDTOs);
     }
 
     // Retrieve all bank accounts (Admin or Employee Only)
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
-    public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
-        List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
-        List<BankAccountDTO> accountDTOs = accounts.stream()
-                .map(BankAccountMapper.INSTANCE::toBankAccountDTO)
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<BankAccountDTO>> getAllBankAccounts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "accountNumber") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+
+        Page<BankAccount> accounts = bankAccountService.getAllBankAccounts(pageable);
+        Page<BankAccountDTO> accountDTOs = accounts.map(BankAccountMapper.INSTANCE::toBankAccountDTO);
         return ResponseEntity.ok(accountDTOs);
     }
 

@@ -12,6 +12,8 @@ import com.banking.restapiebankify.repository.BankAccountRepository;
 import com.banking.restapiebankify.repository.TransactionRepository;
 import com.banking.restapiebankify.service.TransactionService;
 import com.banking.restapiebankify.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -91,12 +93,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<Transaction> getTransactionsForAccount(Long accountId, String username) {
-        return transactionRepository.findByFromAccountId(accountId);
+    public Page<Transaction> getTransactionsForAccount(Long accountId, String username, Pageable pageable) {
+        return transactionRepository.findByFromAccountId(accountId, pageable);
     }
 
     @Override
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+    public Page<Transaction> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable);
     }
 }

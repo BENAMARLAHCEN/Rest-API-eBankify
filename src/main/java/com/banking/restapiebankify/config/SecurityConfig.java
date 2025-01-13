@@ -57,10 +57,35 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.disable())  // Enable/disable CORS as needed
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/register", "/api/login").permitAll()  // Open to all users
-                        .requestMatchers("/user/**").hasRole("USER")
-                        .requestMatchers("/employee/**").hasRole("EMPLOYEE")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/register",
+                                "/api/auth/login",
+                                "api/auth/refresh-token",
+                                "api/auth/verify",
+                                "api/auth/me",
+                                "api/bankaccounts/account/**",
+                                "api/bankaccounts/all",
+                                "api/bankaccounts/myAccounts",
+                                "api/bankaccounts/create",
+                                "api/bankaccounts/update/**",
+                                "api/bankaccounts/delete/**",
+                                "api/bankaccounts/admin/**",
+                                "api/bankaccounts/admin/activate/**",
+                                "api/bankaccounts/admin/block/**",
+                                "api/bills/create",
+                                "api/bills/all",
+                                "api/bills/myBill",
+                                "api/bills/pay/**",
+                                "api/transactions/account/**",
+                                "api/transactions/all",
+                                "api/transactions/approve/**",
+                                "api/transactions/reject/**",
+                                "api/transactions/create",
+                                "api/loans/request",
+                                "api/loans/approve/**",
+                                "api/loans/reject/**",
+                                "api/loans/user",
+                                "api/loans/all"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())

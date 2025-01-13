@@ -1,6 +1,7 @@
 package com.banking.restapiebankify.service.impl;
 
 import com.banking.restapiebankify.dto.UserDTO;
+import com.banking.restapiebankify.dto.UserResponse;
 import com.banking.restapiebankify.mapper.UserMapper;
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;
@@ -34,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public User registerUser(UserDTO userDTO) {
+    public UserResponse registerUser(UserDTO userDTO) {
         User user = UserMapper.INSTANCE.toUser(userDTO);
 
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
@@ -52,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
 
         user.setRole(role);
 
-        return userRepository.save(user);
+        return UserMapper.INSTANCE.toUserResponse(userRepository.save(user));
     }
 
 }

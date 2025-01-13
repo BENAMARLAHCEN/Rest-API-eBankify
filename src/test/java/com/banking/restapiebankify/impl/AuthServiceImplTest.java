@@ -1,6 +1,7 @@
 package com.banking.restapiebankify.impl;
 
 import com.banking.restapiebankify.dto.UserDTO;
+import com.banking.restapiebankify.dto.UserResponse;
 import com.banking.restapiebankify.model.Role;
 import com.banking.restapiebankify.model.User;
 import com.banking.restapiebankify.repository.RoleRepository;
@@ -64,12 +65,12 @@ class AuthServiceImplTest {
             return savedUser;
         });
 
-        User registeredUser = authService.registerUser(userDTO);
+        UserResponse registeredUser = authService.registerUser(userDTO);
 
         assertNotNull(registeredUser);
         assertEquals("testuser", registeredUser.getUsername());
         assertEquals("test@example.com", registeredUser.getEmail());
-        assertEquals("USER", registeredUser.getRole().getName());
+        assertEquals("USER", registeredUser.getRole());
         verify(userRepository, times(1)).save(any(User.class));
     }
 
