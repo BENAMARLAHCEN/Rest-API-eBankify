@@ -13,10 +13,12 @@ public interface BankAccountMapper {
 
     @Mapping(source = "user.id", target = "userId")
     @Mapping(source = "status", target = "status")
+    @Mapping(source = "type", target = "type")
     BankAccountDTO toBankAccountDTO(BankAccount bankAccount);
 
     @Mapping(source = "userId", target = "user.id")
     @Mapping(source = "status", target = "status")
+    @Mapping(source = "type", target = "type")
     BankAccount toBankAccount(BankAccountDTO bankAccountDTO);
 }
 

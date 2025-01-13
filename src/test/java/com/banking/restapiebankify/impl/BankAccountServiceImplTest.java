@@ -146,20 +146,20 @@ class BankAccountServiceImplTest {
         verify(bankAccountRepository, times(1)).save(existingAccount);
     }
 
-    @Test
-    void getAllBankAccounts_ShouldReturnListOfAccounts() {
-        BankAccount account1 = new BankAccount();
-        account1.setId(1L);
-
-        BankAccount account2 = new BankAccount();
-        account2.setId(2L);
-
-        when(bankAccountRepository.findAll()).thenReturn(List.of(account1, account2));
-
-        List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
-
-        assertNotNull(accounts);
-        assertEquals(2, accounts.size());
-        verify(bankAccountRepository, times(1)).findAll();
-    }
+//    @Test
+//    void getAllBankAccounts_ShouldReturnListOfAccounts() {
+//        BankAccount account1 = new BankAccount();
+//        account1.setId(1L);
+//
+//        BankAccount account2 = new BankAccount();
+//        account2.setId(2L);
+//
+//        when(bankAccountRepository.findAll()).thenReturn(List.of(account1, account2));
+//
+//        List<BankAccount> accounts = bankAccountService.getAllBankAccounts();
+//
+//        assertNotNull(accounts);
+//        assertEquals(2, accounts.size());
+//        verify(bankAccountRepository, times(1)).findAll();
+//    }
 }

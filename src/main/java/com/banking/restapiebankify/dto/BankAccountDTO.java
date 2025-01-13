@@ -15,6 +15,7 @@ public class BankAccountDTO {
     private Long id;
     private String accountNumber;
     private BigDecimal balance;
+    private String type; // SAVINGS or CHECKING
     private String status; // ACTIVE or BLOCKED
     private Long userId; // Linking to the user who owns the account
 }
