@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -37,7 +38,7 @@ public class BillServiceImpl implements BillService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         bill.setUser(user);
         bill.setStatus(BillStatus.UNPAID);
-        bill.setDueDate(LocalDateTime.now().plusMonths(1));
+        bill.setDueDate(LocalDate.now().plusMonths(1));
         return billRepository.save(bill);
     }
 

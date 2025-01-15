@@ -7,6 +7,7 @@ import com.banking.restapiebankify.model.enums.BillStatus;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,7 +26,7 @@ class BillMapperTest {
                 .user(user)
                 .biller("Electric Company")
                 .amount(BigDecimal.valueOf(200))
-                .dueDate(LocalDateTime.of(2023, 12, 31, 23, 59))
+                .dueDate(LocalDate.of(2023, 12, 31))
                 .status(BillStatus.UNPAID)
                 .build();
 
@@ -47,7 +48,7 @@ class BillMapperTest {
                 .userId(1L)
                 .biller("Electric Company")
                 .amount(BigDecimal.valueOf(200))
-                .dueDate(LocalDateTime.of(2023, 12, 31, 23, 59))
+                .dueDate(LocalDate.of(2023, 12, 31))
                 .status("UNPAID")
                 .build();
 

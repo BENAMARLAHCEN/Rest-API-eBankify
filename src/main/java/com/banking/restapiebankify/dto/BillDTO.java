@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -17,6 +18,6 @@ public class BillDTO {
     private Long userId; // Linking to the user to whom the bill is associated
     private String biller; // The entity requesting payment
     private BigDecimal amount;
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
     private String status; // UNPAID, PAID, OVERDUE
 }
