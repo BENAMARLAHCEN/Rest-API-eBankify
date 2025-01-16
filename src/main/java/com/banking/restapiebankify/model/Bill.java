@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,7 +32,7 @@ public class Bill {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
