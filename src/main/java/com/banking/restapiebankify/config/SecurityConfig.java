@@ -55,7 +55,6 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.disable())  // Enable/disable CORS as needed
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/register",
                                 "/api/auth/login",
